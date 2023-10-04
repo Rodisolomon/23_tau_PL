@@ -1,0 +1,235 @@
+Homework 1
+CMSC 22100, Autumn 2023, University of Chicago
+
+This directory contains the following files. The four files you must
+edit for the first homework assignment are marked with asterisks.
+
+README
+- this file, which includes a description of the language L23
+  below. L23 stands for the "the language of 2023." (We make new
+  programming languages every time we offer CS221 so as to avoid
+  repetition.)
+
+hw1.cm
+- This is SML's equivalent of a Makefile. You compile the project by
+  entering the SML shell and running this command:
+
+    CM.make "hw1.cm";
+
+hw1.pdf
+- A LaTeX presentation of the small-step evaluation rules for
+  L23. You will need to refer to this document closely when
+  implementing the Eval module.
+
+token.sml
+- defines the token datatype, for scanning
+
+ast.sml
+- defines the term datatype, for parsing
+
+scan.sml*
+- implementation of scanning
+
+parse.sml*
+- implementation of parsing
+
+eval.sml*
+- implementation of small-step evaluation
+
+read-file.sml
+- code to read a file into a string (for compilation)
+
+compile.sml
+- scans and parses files or code
+
+check.sig
+- types for the check module
+
+check.sml
+- code to facilitate unit testing
+
+test.sml*
+- unit tests of the L23 compiler
+
+The L23 language has the following term grammar:
+
+t ::= Z           // zero
+    | T           // true
+    | F           // false
+    | St          // successor
+    | Pt          // predecessor
+    | [t + t]     // natural addition
+    | [t - t]     // natural subtraction
+    | [t < t]     // less-than on naturals
+    | [t > t]     // greater-than on naturals
+    | [t && t]    // binary and
+    | [t || t]    // binary or
+    | [t ? t : t] // three-place conditionals
+
+Values are defined as follows:
+
+v  ::= T | F | nv
+nv ::= Z | Snv
+
+To complete this assignment, you must implement the stubbed-out
+operations in the Scan, Parse, and Eval modules. 
+
+The module Test is provided for you to write unit tests to make sure
+that your code is working properly. A few tests are already provided
+as examples. Note there are facilities for both "positive" and
+"negative" tests; i.e., tests of computations you expect to work, and
+tests of computations you expect not to work. You may write as few or
+as many additional tests as you like in the Test module. To be clear:
+when we grade your work, we will not score you on how many tests you
+do or don't write in the Test module. The module is simply a unit
+testing framework provided so you yourself can verify the correct
+behavior of your code. You are advanced CS students now, and by this
+point you should understand that unit testing is its own reward. We
+will run your compiler against a set of examples that we will not
+share in advance.
+
+The rest of the code is completed for you and requires no
+modification. You may write helper functions as you see fit in any of
+the modules (although you won't need to edit any files except the four
+already named), but please follow the principle of *conservative
+extension*, meaning that, even if you supplement what we've given you
+with additional tools, you leave everything already present intact in
+place (and don't break our testing framework). More specifically, be
+sure not to change any of the operation names and types that appear in
+provided type signatures.
+
+To be clear, the stubs like this in the starter package
+
+  fun next _ = raise Fail "todo"
+
+are meant to be removed and replaced with your own working code.
+
+If you type this command in the terminal
+
+  grep todo *.sml
+
+you will get a quick overview of all the operations you need to
+implement.
+
+Note that module names (e.g., Token and AST) can be abbreviated with
+like this
+
+  structure T = Token
+
+These module-name abbreviations can make code shorter and easier to
+read and easier to write. Please see the Test module for some examples
+of this, and use the technique as much as you want.
+
+If terms in the SML shell get too big, textually, the shell will start
+to stub out parts of them with hash marks. You can increase the length
+and depth of SML shell term displays with these commands inside the
+SML shell:
+
+  Control.Print.printLength := 9999;
+  Control.Print.printDepth := 9999;
+
+9999 is just an arbitrary big number; use whatever number you like in
+practice.
+
+Finally, a few comments on particular modules:
+
+Scan:
+
+- Guidance on how to write Scan.next was given in lecture on Tues
+  Oct 3.
+
+- The scan function should call the next function repeatedly until
+  there are no more tokens left in the sequence of characters.
+
+- Use the built-in function
+
+    explode : string -> char list
+
+  to separate a string into a list of characters.
+
+- Make sure your scanner ignores white space, so that, for example,
+  the programs "[T && F]" and "[ T && F]" are no different from one
+  another as far as the scanner is concerned. Please use the built-in
+  SML function
+  
+    Char.isSpace : char -> bool
+
+  to test if a character is a whitespace or not. Please note that you
+  cannot make the "isSpace" judgment as part of a pattern match; you
+  will need to make a function call.
+
+- Please raise an error if there is no recognizable token at the front
+  the given character list. 
+
+Parse:
+
+- Guidance on how to write Parse.parse will have been given in lecture
+  on Thurs Oct 5.
+
+- The function next will need to call itself recursively. The function
+  parse should call next and ultimately retrieve exactly one AST term
+  from the token list. If the token list given to parse contains more
+  than one AST term, raise an error.
+
+- Please raise an error if there is no recognizable term at the front
+  the given token list.
+  
+Eval:
+
+- The functions isNV and isV should determine if a term is a numeric
+  value or a value, respectively.
+
+- The step function should take exactly one evaluation step from an
+  AST term, if there is a step to be taken. Not being able to take a
+  step is not "bad", per se, it just means there is no evaluation
+  remaining to be done. This is true of values and also of stuck
+  terms. When there is no step to take, the function should return
+  NONE. For example, here is a clause of the step function you might
+  include in your code:
+
+    fun step A.True = NONE
+
+- Note that in the step function, some of the clauses (like the one
+  you see immediately above) can be identified through pattern
+  matching alone, but some others cannot (namely, ones that involve
+  determining whether a term is a value or not). This is to say, you
+  can implement step with pattern matching only up to a point.
+
+- The function eval should take all the evaluation steps possible
+  starting from a given term; i.e., it needs to call step over and
+  over again. It should always return a list that is at least one item
+  long. That is, if you evaluation the term A.False, which takes no
+  steps, the result of calling eval should be [A.False], showing no
+  steps, just the term itself. For a term that does have somewhere to
+  go -- for example, A.Pred A.Zero -- the result should be a list of
+  all steps, with the final step last. For example, calling eval of
+  A.Pred A.Zero should yield [A.Pred A.Zero, A.Zero], where A.Zero is
+  the final result of the evaluation. A stuck term shouldn't cause any
+  kind of error to be raised, it should just get stuck where it is;
+  for example, calling eval on A.Pred A.False should yield
+  [A.Pred A.False] (a length-one list).
+
+- There are no errors in sequences of evaluation steps. There are only
+  normal forms.
+
+Test:
+
+- Note how the tests of parsing and evaluation do not depend on other
+  compiler phases: that is, parse tests are written with token lists,
+  and eval tests are written with AST terms. This enables testing of
+  parsing and evaluation that do not depend on earlier phases. This
+  technique is good for honing in on individual operations and testing
+  them in isolation. The tests under "compile" test the whole
+  compiler, from scanning to parsing to evaluation.
+
+- You can test individual phases with
+
+    Test.scan()
+
+  and likewise for parse and eval. The function "all" runs all the
+  tests (as currently written). That is, you can type
+
+    Test.all()
+
+  in the SML shell to run all the tests in sequence.
+  
