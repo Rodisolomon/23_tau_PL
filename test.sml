@@ -6,6 +6,10 @@ structure Test = struct
   fun scan () =
     let
       val _ = Check.expect (Scan.scan "Z", [T.Z], "scan0")
+      val _ = Check.expect (Scan.scan "Z[", [T.Z, T.LBrack], "scan0")
+      val _ = Check.expect (Scan.scan "Z [", [T.Z, T.LBrack], "scan1")
+      val _ = Check.expect (Scan.scan "||", [T.DoublePipe], "scan2")
+      val _ = Check.expect (Scan.scan " | |", [T.DoublePipe], "scan3")
       val _ = Check.exn (fn () => Scan.scan "~", "badScan00")
       (* write more scan tests here *)
     in
