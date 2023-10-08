@@ -9,10 +9,14 @@ end = struct
 
   structure A = AST
 
-  fun isNV _ = raise Fail "todo"
+  fun isNV (AST.Zero) = true
+    | isNV (AST.Succ t) = isNV t
+    | isNV _ = false;
 
-  fun isV _ = raise Fail "todo"
-		 
+
+  fun isV x = 
+		(x=A.True) orelse (x=A.False) orelse (isNV x);
+
   fun step _ = raise Fail "todo"
 
   fun eval _ = raise Fail "todo"
