@@ -168,6 +168,14 @@ end = struct
             eightOneEightTwo(tokA, tokB);
 
       fun handleCond(tokA, tokB, tokC) = 
+        if tokA = A.True then
+          SOME (tokB)
+        else if tokA = A.False then
+          SOME (tokC)
+        else
+          case step tokA of 
+              SOME tokA' => SOME (A.Cond (tokA', tokB, tokC))
+            | _ => NONE;
     in
       case input of 
       (* 1.1 *)
@@ -191,9 +199,9 @@ end = struct
         | A.And (A.False, others) =>
           SOME (A.False)
       (* 9.3 *)
-        | A.And (tok1, tok2) =>
-            (case step tok1 of 
-              SOME tok1' => SOME (A.And (tok1', tok2))
+        | A.And (tokA, tokB) =>
+            (case step tokA of 
+              SOME tokA' => SOME (A.And (tokA', tokB))
             | _ => NONE)
       (* 10.1 and 10.2 *)
         | A.Or (A.True, others) =>
@@ -201,11 +209,12 @@ end = struct
         | A.Or (A.False, others) =>
           SOME (others)
       (* 10.3 *)
-        | A.Or (tok1, tok2) =>
-            (case step tok1 of 
-              SOME tok1' => SOME (A.Or (tok1', tok2))
+        | A.Or (tokA, tokB) =>
+            (case step tokA of 
+              SOME tokA' => SOME (A.Or (tokA', tokB))
             | _ => NONE)
       (* 11.X *)
+        | A.Cond (tokA, tokB, tokC) => handleCond(tokA, tokB, tokC)
         | _ => NONE
     end;
 

@@ -54,6 +54,7 @@ structure Test = struct
       val _ = Check.expect (Eval.eval A.Zero, [A.Zero], "eval0")
       val _ = Check.expect (Eval.eval (A.Add(A.Pred(A.Zero), A.Zero)), [A.Add (A.Pred(A.Zero), A.Zero), A.Add (A.Zero, A.Zero), A.Zero], "eval1.2+2.3")
 
+      
       (* stuck term *)
       val _ = Check.expect (Eval.eval (A.Greater(A.Succ(A.True), A.Pred(A.Zero))), [A.Greater(A.Succ(A.True), A.Pred(A.Zero))], "eval2.2S")
       val _ = Check.expect (Eval.eval (A.Subtract(A.And (A.True, A.False), A.Or (A.False, A.False))), [A.Subtract(A.And (A.True, A.False), A.Or (A.False, A.False)), A.Subtract(A.False, A.Or (A.False, A.False)), A.Subtract(A.False, A.False)], "eval3.3S")
