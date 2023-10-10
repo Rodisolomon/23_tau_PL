@@ -10,9 +10,10 @@ structure Test = struct
       val _ = Check.expect (Scan.scan "Z [", [T.Z, T.LBrack], "scan1")
       val _ = Check.expect (Scan.scan "||", [T.DoublePipe], "scan2")
       val _ = Check.expect (Scan.scan "[Z+Z]", [T.LBrack, T.Z, T.Plus, T.Z, T.RBrack], "scan4")
-      val _ = Check.expect (Scan.scan "[[Z<SZ]||F]", [T.LBrack, T.LBrack, T.Z, T.LessThan, T.S, T.Z, T.RBrack, T.DoublePipe, T.F], "scan5")
-      (* val _ = Check.exn (fn () => Scan.scan " | |", "badScan00") *)
-      val _ = Check.exn (fn () => Scan.scan "~", "badScan01")
+      val _ = Check.expect (Scan.scan "[[Z<SZ]||F]", [T.LBrack, T.LBrack, T.Z, T.LessThan, T.S, T.Z, T.RBrack, T.DoublePipe, T.F, T.RBrack], "scan5")
+
+      val _ = Check.exn (fn () => Scan.scan "~", "badScan00")
+      val _ = Check.exn (fn () => Scan.scan "| |", "badScan01")
       (* write more scan tests here *)
     in
       TextIO.print "scan tests done\n"
@@ -54,7 +55,7 @@ structure Test = struct
       val _ = Check.expect (Eval.eval A.Zero, [A.Zero], "eval0")
       val _ = Check.expect (Eval.eval (A.Add(A.Pred(A.Zero), A.Zero)), [A.Add (A.Pred(A.Zero), A.Zero), A.Add (A.Zero, A.Zero), A.Zero], "eval1.2+2.3")
 
-      
+
       (* stuck term *)
       val _ = Check.expect (Eval.eval (A.Greater(A.Succ(A.True), A.Pred(A.Zero))), [A.Greater(A.Succ(A.True), A.Pred(A.Zero))], "eval2.2S")
       val _ = Check.expect (Eval.eval (A.Subtract(A.And (A.True, A.False), A.Or (A.False, A.False))), [A.Subtract(A.And (A.True, A.False), A.Or (A.False, A.False)), A.Subtract(A.False, A.Or (A.False, A.False)), A.Subtract(A.False, A.False)], "eval3.3S")

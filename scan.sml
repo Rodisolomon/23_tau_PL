@@ -40,6 +40,20 @@ end = struct
   fun removeWhitespace(charList: char list) =
       List.filter (fn c => not (Char.isSpace c)) charList;
 
+  fun hasWhitespaceBetweenChars (chars : char list) =
+      let
+          fun hasWhitespace (c : char) = Char.isSpace c
+          fun checkWhitespace [] = false
+            | checkWhitespace [x] = false
+            | checkWhitespace (x :: y :: rest) =
+              if (x = #"|" orelse x = #"&") andalso hasWhitespace y
+              then true
+              else checkWhitespace (y :: rest)
+      in
+          checkWhitespace chars
+      end;
+
+
   fun lp chars = 
     case next chars of
         SOME(token, chars') => token :: lp chars'
@@ -48,12 +62,16 @@ end = struct
   fun scan str = 
     let 
       val plain_char_lst = String.explode(str)
+      val wrong_and_or = hasWhitespaceBetweenChars plain_char_lst
       val char_lst = removeWhitespace plain_char_lst
       val returned_tokens = lp char_lst
       val list_length = length returned_tokens;
     in
+      (* print (if wrong_and_or then "true\n" else "false\n"); *)
       if list_length = 0 then 
-        raise Fail "todo"
+        raise Fail "no valid token"
+      else if wrong_and_or then
+        raise Fail "wrong and/or operator"
       else
         returned_tokens
     end;
