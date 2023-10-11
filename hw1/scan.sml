@@ -53,7 +53,6 @@ end = struct
           checkWhitespace chars
       end;
 
-
   fun lp chars = 
     case next chars of
         SOME(token, chars') => token :: lp chars'
