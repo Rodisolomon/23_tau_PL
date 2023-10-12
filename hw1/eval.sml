@@ -68,7 +68,9 @@ end = struct
                 (case step tokA of 
                     SOME tokA' => SOME (A.Subtract (tokA', tokB))
                   | _ => NONE)
-          | _ => NONE;
+          | _ =>  (case step tokA of 
+                SOME tokA' => SOME (A.Subtract (tokA', tokB))
+              | _ => NONE);
       fun handleSubtr(tokA, tokB) = 
       (* 3.1-3.3, 4.1-4.2 *)
         if tokA = A.Zero andalso isNV tokB then
@@ -97,7 +99,9 @@ end = struct
                   (case step tokA of 
                       SOME tokA' => SOME (A.Less (tokA', tokB))
                     | _ => NONE)
-            | _ => NONE;
+            | _ => (case step tokA of 
+                    SOME tokA' => SOME (A.Less (tokA', tokB))
+                  | _ => NONE);
 
       fun handleLess(tokA, tokB) =
       (* 5.1-5.4, 6.1-6.2 *)
@@ -139,7 +143,9 @@ end = struct
                 (case step tokA of 
                     SOME tokA' => SOME (A.Greater (tokA', tokB))
                   | _ => NONE)
-          | _ => NONE;
+          | _ =>  (case step tokA of 
+                  SOME tokA' => SOME (A.Greater (tokA', tokB))
+                | _ => NONE);
       fun handleGreater(tokA, tokB) = 
         (* 7.1, 7.2 *)
           if tokA = A.Zero andalso isNV tokB then

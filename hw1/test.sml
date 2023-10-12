@@ -10,8 +10,9 @@ structure Test = struct
       val _ = Check.expect (Scan.scan "Z [", [T.Z, T.LBrack], "scan1")
       val _ = Check.expect (Scan.scan "||", [T.DoublePipe], "scan2")
       val _ = Check.expect (Scan.scan "[Z+Z]", [T.LBrack, T.Z, T.Plus, T.Z, T.RBrack], "scan4")
-      val _ = Check.expect (Scan.scan "[[Z<SZ]||F]", [T.LBrack, T.LBrack, T.Z, T.LessThan, T.S, T.Z, T.RBrack, T.DoublePipe, T.F, T.RBrack], "scan5")
-
+      val _ = Check.expect (Scan.scan "Z+Z", [T.Z, T.Plus, T.Z], "scan5") 
+      val _ = Check.expect (Scan.scan "[[Z<SZ]||F]", [T.LBrack, T.LBrack, T.Z, T.LessThan, T.S, T.Z, T.RBrack, T.DoublePipe, T.F, T.RBrack], "scan6")
+      
       val _ = Check.exn (fn () => Scan.scan "~", "badScan00")
       val _ = Check.exn (fn () => Scan.scan "| |", "badScan01")
       (* write more scan tests here *)
@@ -35,6 +36,8 @@ structure Test = struct
       val _ = Check.expect (Parse.parse [T.LBrack, T.Z, T.QuestionMark, T.Z, T.Colon, T.Z, T.RBrack], A.Cond(A.Zero, A.Zero, A.Zero) , "parse6")
 
       val _ = Check.exn (fn () => Parse.parse [T.LBrack], "badParse0")
+      val _ = Check.exn (fn () => Parse.parse [T.Z, T.Plus, T.Z], "badParse1")
+      val _ = Check.exn (fn () => Parse.parse [T.LBrack, T.Z, T.Plus, T.RBrack], "badParse2")
     in
       TextIO.print "parse tests done\n"
     end
@@ -54,7 +57,8 @@ structure Test = struct
       (* check step *)
       val _ = Check.expect (Eval.eval A.Zero, [A.Zero], "eval0")
       val _ = Check.expect (Eval.eval (A.Add(A.Pred(A.Zero), A.Zero)), [A.Add (A.Pred(A.Zero), A.Zero), A.Add (A.Zero, A.Zero), A.Zero], "eval1.2+2.3")
-
+      val _ = Check.expect (Eval.eval (A.Cond(A.Or(A.True, A.False), A.False, A.False)), [A.Cond(A.Or(A.True, A.False), A.False, A.False), A.Cond(A.True, A.False, A.False), A.False], "eval_cond_rule")
+      val _ = Check.expect (Eval.eval (A.Less(A.Pred(A.Zero), A.True)), [A.Less(A.Pred(A.Zero), A.True), A.Less(A.Zero, A.True)], "evalLess")
 
       (* stuck term *)
       val _ = Check.expect (Eval.eval (A.Greater(A.Succ(A.True), A.Pred(A.Zero))), [A.Greater(A.Succ(A.True), A.Pred(A.Zero))], "eval2.2S")
@@ -68,6 +72,7 @@ structure Test = struct
   fun compile () =
     let
       val _ = Check.expect (Compile.code "SZ", [A.Succ A.Zero], "compile0")
+      val _ = Check.expect (Compile.code "[[Z<SZ]||F]", [A.Or(A.Less(A.Zero, A.Succ(A.Zero)), A.False), A.Or(A.True, A.False), A.True], "compile1")
       (* write more eval tests here *)
     in
       TextIO.print ("compile tests done\n")
