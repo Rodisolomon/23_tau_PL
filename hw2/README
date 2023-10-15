@@ -1,0 +1,131 @@
+Homework 2
+CMSC 22100, Autumn 2023, University of Chicago
+
+The second homework introduces the language L23_tau, which builds upon
+L23 by adding types and a few additional forms.
+
+There is a distinction in L23_tau between the surface language, which
+is the language the programmer sees, and the internal language, which
+is tucked away inside the compiler. As the surface language contains
+several instances of syntactic sugar -- that is, forms that are meant
+to sweeten the programmer's experience -- the L23_tau compiler
+includes a desugaring phase whereby the surface language is translated
+into the internal language. Terms in these two languages are defined
+in the modules Sugary and Desugared.
+
+The L23_tau surface language has the following term grammar:
+
+t ::= n           // natural numbers: 1 or more digits
+    | T           // true
+    | F           // false
+    | [t + t]     // natural addition
+    | [t - t]     // natural subtraction
+    | [t < t]     // less-than on naturals
+    | [t > t]     // greater-than on naturals	
+    | [t <= t]    // less-than-or-equal on naturals	
+    | [t >= t]    // greater-than-or-equal on naturals
+    | !t          // logical not
+    | [t && t]    // binary and
+    | [t || t]    // binary or
+    | [t ^^ t]    // binary xor
+    | [t ? t : t] // three-place conditionals
+    | [t == t]    // equality test
+    | ()          // unit
+    | (t,t)       // pair
+    | 1#t         // first of pair
+    | 2#t         // second of pair
+    
+The types in L23_tau are
+
+tau ::= Nat | Bool | Unit | tau * tau
+
+The L23_tau internal language is as follows. Note there is no scanning
+or parsing needed (no "front end," in other words) for the internal
+language since the programmer does not directly interact with it.
+
+t ::= Z
+    | St
+    | [t + t]
+    | [t - t]
+    | [t < t]
+    | [t == t]
+    | [t ? t : t]
+    | (t, t)
+    | 1#t
+    | 2#t
+
+The values in this internal language are
+
+v  ::= (v, v) | nv
+nv ::= Z | Snv
+		  
+Note that this internal language contains no booleans or unit; any
+such terms will have been translated into numbers during desugaring
+(described below). It is also more compact than the surface language,
+which has benefits both in practice (compiler writing) and in theory
+(theorems).
+
+The files contained in this directory are as follows. There is an
+asterisk indicating the files we expect you to edit.
+
+- README: this file
+- hw2.cm: compilation management
+- check.sig, check.sml, *test.sml: testing infrastructure
+- read-file.sml, compile.sml: compiler infrastructure
+- token.sml, type.sml, sugary.sml, desugared.sml: definitions
+- *scan.sml: lexical scanner
+- parse.sml: recursive descent parser
+- *typecheck.sml: type checker
+- *desugar.sml: language transformer
+- *eval.sml: small-step evaluator
+
+Your HW2 work consists of the following tasks:
+
+*scan.sml: The scanner is almost done as it. You need to extend the
+ scanner to read natural number tokens from the source code. There is
+ a built-in function
+
+   Int.fromString : string -> int option
+
+ that you should feel free to use to implement this.
+
+(parse.sml is done already. You're welcome.)
+
+*typecheck.sml: Calculate the type of the program, if possible. If the
+ program is not well-typed, raise an exception. The typing rules are
+ given in an accompanying document.
+
+*desugar.sml: Translate terms from the Sugary to the Desugared term
+ language according to the following rules:
+
+  - rewrite natural numbers to Z, SZ, etc.
+  - rewrite true to SZ
+  - rewrite false to Z
+  - rewrite unit to Z
+  - rewrite <=, >, >=, !, &&, ||, ^^ into Desugared terms 
+
+The last item (<=, >, >=. etc.) is a little puzzly (also fun); you
+might have to get out a pencil and fiddle around with the different
+form translations.
+
+Besides transforming the terms enumerated here, you will need to
+recursively transform all subterms. We don't need to push this point
+too emphatically, since the SML typechecker won't let you implement
+desugaring without doing this anyway.
+
+(It might seem that transforming booleans and unit into natural
+numbers would constitute some kind of type violation. Actually, this
+is fine; type checking will have been done by this point, and
+ill-typed programs will already have been rejected at an earlier
+phase, meaning that we are free to discard types. Compilers do this in
+practice all the time; n.b., bytes don't have types.)
+
+*eval.sml: The bad news: you need to write another small-step
+ evaluator. The good news: it's very much like your HW1 evaluator. You
+ can peruse the HW2 rules in an accompanying document. Most of them
+ will be familiar to you. You are allowed and encouraged to copy and
+ paste your HW1 step function in eval.sml as a starting point, and let
+ the typechecker guide you through the process of updating the
+ evaluation rules.
+
+*test.sml: Write tests, but, per HW1, you will not be scored on them.
