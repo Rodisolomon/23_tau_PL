@@ -5,8 +5,18 @@ structure Scan : sig
 	    
 end = struct
 
-  structure T = Token
+  fun extractNumber [] = ("", [])
+    | extractNumber (c::cs) =
+      if Char.isDigit c then
+          let
+              val (numStr, rest) = extractNumber cs
+          in
+              (str c ^ numStr, rest)
+          end
+      else
+          ("", c::cs);
 
+  structure T = Token
   fun next [] = NONE
     | next (#"T" :: tl) = SOME (T.T, tl)
     | next (#"F" :: tl) = SOME (T.F, tl)
@@ -33,9 +43,17 @@ end = struct
     | next (c::cs) =
         if Char.isSpace c
 	then next cs
-	else (if Char.isDigit c
-	      then raise Fail "todo"
-	      else raise Fail ("scan error: " ^ implode (c::cs)))
+	else (if Char.isDigit c 
+    then 
+      let
+        val (numStr, rest) = extractNumber (c :: cs)
+        val num = Int.fromString numStr
+      in
+        case num of
+          SOME n => SOME (T.Nat n, rest)
+        | NONE => NONE
+      end
+	  else raise Fail ("scan error: " ^ implode (c::cs)))
 
   fun scan code =
     let

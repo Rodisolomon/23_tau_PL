@@ -8,6 +8,7 @@ structure Test = struct
   fun scan () =
     let
       val _ = Check.expect (Scan.scan "12", [T.Nat 12], "scan12")
+      val _ = Check.exn (fn () => Scan.scan "12#", "badScan12#")
       val _ = Check.exn (fn () => Scan.scan "~", "badScan00")
       (* write more scan tests here *)
     in
