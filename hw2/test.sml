@@ -35,6 +35,10 @@ structure Test = struct
     let
       val desugar = Desugar.desugar
       val _ = Check.expect (desugar (S.Nat 0), D.Zero, "desugar0")
+      val _ = Check.expect (desugar (S.Nat 3), D.Succ (D.Succ (D.Succ (D.Zero))), "desugarNatNum")
+      val _ = Check.expect (desugar (S.Subtract ((S.Nat 0), S.Nat 3)), (D.Subtract (D.Zero, D.Succ (D.Succ (D.Succ (D.Zero))))), "desugarNestedSubtract")
+      val _ = Check.expect (desugar (S.Subtract ((S.Nat 0), S.Nat 3)), (D.Subtract (D.Zero, D.Succ (D.Succ (D.Succ (D.Zero))))), "desugarNestedSubtract")
+      val _ = Check.expect (desugar (S.GreaterEq ((S.Nat 0), (S.Nat 0))), (D.Cond(D.Cond(D.Cond(D.Less(D.Zero, D.Zero), D.Succ (D.Zero), D.Zero), D.Succ (D.Zero), D.Eq(D.Zero, D.Zero)), D.Succ (D.Zero), D.Zero)), "desugarGreaterEq")
     in
       TextIO.print "desugar tests done\n"
     end
