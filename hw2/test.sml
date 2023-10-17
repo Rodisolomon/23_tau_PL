@@ -27,6 +27,14 @@ structure Test = struct
   fun typ () =
     let
       val _ = Check.expect (TypeCheck.typeof (S.Nat 12), Type.Nat, "type12") 
+      val _ = Check.expect (TypeCheck.typeof (S.Add (S.Nat 1, S.Nat 12)), Type.Nat, "GoodTypeRelational") 
+      val _ = Check.expect (TypeCheck.typeof (S.Eq (S.Nat 1, S.True)), Type.Bool, "GoodTypeEq") 
+      val _ = Check.expect (TypeCheck.typeof (S.Cond (S.True, S.Nat 12, S.False)), Type.Nat, "GoodTypeCond") 
+
+      val _ = Check.exn (fn () => TypeCheck.typeof (S.Add (S.True, S.Nat 12)), "badTypeRelational")
+      val _ = Check.exn (fn () => TypeCheck.typeof (S.Eq (S.Add (S.True, S.Nat 12), S.Nat 12)), "badTypeRelational")
+      val _ = Check.exn (fn () => TypeCheck.typeof (S.Cond (S.Nat 12, S.True, S.False)), "badTypeConditional")
+
     in
       TextIO.print "type tests done\n"
     end
