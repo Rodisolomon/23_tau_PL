@@ -55,6 +55,16 @@ end = struct
       (case (typeof A, typeof B) of
          (_, _) => T.Product (typeof A, typeof B)
       )
+    | S.First(A) =>
+      (case (typeof A) of
+         T.Product (firstToken , _) => firstToken
+        | _ => raise Fail "expecting T.Product"
+      )       
+    | S.Second(A) =>
+      (case (typeof A) of
+         T.Product (_ , secondToken) => secondToken
+        | _ => raise Fail "expecting T.Product"
+      )    
     | _ => raise Fail "Unknown type";
 
 
