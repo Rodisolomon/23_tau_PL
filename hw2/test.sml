@@ -30,10 +30,13 @@ structure Test = struct
       val _ = Check.expect (TypeCheck.typeof (S.Add (S.Nat 1, S.Nat 12)), Type.Nat, "GoodTypeRelational") 
       val _ = Check.expect (TypeCheck.typeof (S.Eq (S.Nat 1, S.True)), Type.Bool, "GoodTypeEq") 
       val _ = Check.expect (TypeCheck.typeof (S.Cond (S.True, S.Nat 12, S.False)), Type.Nat, "GoodTypeCond") 
+      val _ = Check.expect (TypeCheck.typeof (S.First(S.Pair(S.Nat 1, S.True))), Type.Nat, "GoodTypeTuple") 
 
       val _ = Check.exn (fn () => TypeCheck.typeof (S.Add (S.True, S.Nat 12)), "badTypeRelational")
       val _ = Check.exn (fn () => TypeCheck.typeof (S.Eq (S.Add (S.True, S.Nat 12), S.Nat 12)), "badTypeRelational")
       val _ = Check.exn (fn () => TypeCheck.typeof (S.Cond (S.Nat 12, S.True, S.False)), "badTypeConditional")
+      val _ = Check.exn (fn () => TypeCheck.typeof (S.First(S.Nat 1)), "badTypeConditional")
+
 
     in
       TextIO.print "type tests done\n"

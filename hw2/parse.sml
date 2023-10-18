@@ -20,7 +20,7 @@ end = struct
     | binop T.GreaterEq = S.GreaterEq
     | binop T.DoubleAmpersand = S.And
     | binop T.DoublePipe = S.Or
-    | binop T.DoubleCaret = S.Or
+    | binop T.DoubleCaret = S.Xor
     | binop T.DoubleEq = S.Eq
     | binop tok = raise Fail ("expected binary operator, found " ^ T.tos tok)
 		      
