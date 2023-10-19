@@ -56,7 +56,9 @@ structure Test = struct
 			            
   fun eval () =
     let
-      val _ = Check.expect (Eval.result D.Zero, Eval.Value D.Zero, "eval0")
+      val _ = Check.expect (Eval.result D.Zero, Eval.Value D.Zero, "eval0")      
+      val _ = Check.expect (Eval.result (D.Pair (D.Succ (D.Zero), D.Succ (D.Zero))), Eval.Value (D.Pair (D.Succ (D.Zero), D.Succ (D.Zero))), "eval0")
+
       (* write more eval tests here *)
     in
       TextIO.print "eval tests done\n"

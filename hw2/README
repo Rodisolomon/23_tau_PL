@@ -81,7 +81,7 @@ asterisk indicating the files we expect you to edit.
 
 Your HW2 work consists of the following tasks:
 
-*scan.sml: The scanner is almost done as it. You need to extend the
+*scan.sml: The scanner is almost done as it. You need to extend the 
  scanner to read natural number tokens from the source code. There is
  a built-in function
 

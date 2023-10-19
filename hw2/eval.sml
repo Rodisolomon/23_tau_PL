@@ -55,6 +55,7 @@ end = struct
               (case step others of
                 SOME tokA' => SOME (D.Add (D.Succ tokA', tokB))
               | _ => NONE)
+          | _ => NONE;
 
       fun threeOneThreeTwo(tokA, tokB) =
         case step tokB of
@@ -131,6 +132,89 @@ end = struct
         else 
           fiveOneFiveTwo(tokA, tokB);
 
+      fun isPair(tok) =
+        case tok of
+            D.Pair _ => true
+          | _ => false;
+
+      fun extractPair(tok) = 
+          (* only been called when tok is Succ sth*)
+          case tok of 
+              D.Pair (valA, valB) => (valA, valB)
+            | _ => (tok, tok); (* neverreachthispoint *)
+
+      fun EightOneEightTwo(tokA, tokB) = 
+          case step tokB of
+            SOME tokB' =>
+              if isV tokA then
+                  SOME (D.Eq (tokA, tokB'))
+              else
+                  (case step tokA of 
+                      SOME tokA' => SOME (D.Eq (tokA', tokB))
+                    | _ => NONE)
+            | _ => (case step tokA of 
+                    SOME tokA' => SOME (D.Eq (tokA', tokB))
+                  | _ => NONE);
+
+      fun handleEq(tokA, tokB) =
+      (* 6.1-6.4, 7.1, 8.1-8.2 *)
+        if tokA = D.Zero andalso tokB = D.Zero then
+          SOME (D.Succ (D.Zero))
+        (* 6.2 *)
+        else if tokB = D.Zero andalso isSucc tokA then
+          let
+            val othersA = extractSucc tokB
+          in
+            if isV othersA then
+              SOME (D.Succ D.Zero)
+            else
+              EightOneEightTwo(tokA, tokB)
+          end        
+        (* 6.3 *)
+        else if tokA = D.Zero andalso isSucc tokB then
+          let
+            val othersB = extractSucc tokB
+          in
+            if isV othersB then
+              SOME (D.Succ D.Zero)
+            else
+              EightOneEightTwo(tokA, tokB)
+          end
+        (* 6.4 *)
+        else if (isSucc tokA) andalso (isSucc tokB) then
+          let
+            val othersA = extractSucc tokA
+            val othersB = extractSucc tokB
+          in
+            if (isV othersA) andalso (isV othersB) then
+              SOME (D.Eq (othersA, othersB))
+            else
+              EightOneEightTwo(tokA, tokB)
+          end
+        (* 7.1 *)
+        else if (isPair tokA) andalso (isPair tokB) then
+          let
+            val (v1, v2) = extractPair tokA
+            val (v3, v4) = extractPair tokB
+          in
+            if (isV v1) andalso (isV v2) andalso (isV v3) andalso (isV v4) then
+              SOME ( D.Cond(D.Eq (v1, v3), D.Eq (v2, v4), D.Zero) )
+            else
+              EightOneEightTwo(tokA, tokB) 
+          end
+        else 
+          EightOneEightTwo(tokA, tokB);
+
+      fun handleCond(tokA, tokB, tokC) = 
+        if tokA = D.Succ (D.Zero) then
+          SOME (tokB)
+        else if tokA = D.Zero then
+          SOME (tokC)
+        else
+          case step tokA of 
+              SOME tokA' => SOME (D.Cond (tokA', tokB, tokC))
+            | _ => NONE;
+
     in
       case input of 
       (* 1.1 *)
@@ -141,8 +225,48 @@ end = struct
         | D.Add (tokA, tokB) => handleAdd(tokA, tokB)
         | D.Subtract (tokA, tokB) => handleSubtr(tokA, tokB)
         | D.Less (tokA, tokB) => handleLess(tokA, tokB)
+        | D.Eq (tokA, tokB) => handleEq(tokA, tokB)
+        | D.Cond (tokA, tokB, tokC) => handleCond(tokA, tokB, tokC)
 
+        | D.Pair (tokA, tokB) => 
+          if isV tokA then
+            (case step tokB of
+               SOME tokB' => SOME (D.Pair (tokA, tokB'))
+              | _ => NONE)
+          else
+            (case step tokA of
+               SOME tokA' => SOME (D.Pair (tokA', tokB))
+              | _ => NONE
+              )             
+
+        | D.First (tok) => 
+          (case tok of
+              D.Pair (tokA, tokB) =>
+                if isV tokA andalso isV tokB then
+                  SOME tokA
+                else
+                  NONE
+            | _ =>
+              (case step tok of 
+                SOME tok' => SOME (D.First (tok'))
+                | _ => NONE
+              )
+          )
+        | D.Second (tok) => 
+          (case tok of
+              D.Pair (tokA, tokB) =>
+                if isV tokA andalso isV tokB then
+                  SOME tokB
+                else
+                  NONE
+            | _ =>
+              (case step tok of 
+                SOME tok' => SOME (D.First (tok'))
+                | _ => NONE)
+
+          )
         | _ => NONE
+
     end;
         
 				    
