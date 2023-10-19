@@ -31,9 +31,22 @@ end = struct
      )
     | _ => isNV x;
 
-		 
+	
   fun step input =
     let
+      fun printTerm(term) =
+        case term of
+            D.Zero => print "Zero?"
+          | D.Succ t => (print "Succ "; printTerm t)
+          | D.First t => (print "First "; printTerm t)
+          | D.Second t => (print "Second "; printTerm t)
+          | D.Pair (t1, t2) => (print "(" ; printTerm t1; print ", "; printTerm t2; print ")")
+          | D.Add (t1, t2) => (print "(" ; printTerm t1; print " + "; printTerm t2; print ")")
+          | D.Less (t1, t2) => (print "(" ; printTerm t1; print " < "; printTerm t2; print ")")
+          | D.Subtract (t1, t2) => (print "("; printTerm t1; print " - "; printTerm t2; print ")")
+          | D.Eq (t1, t2) => (print "("; printTerm t1; print " = "; printTerm t2; print ")")
+          | D.Cond (t1, t2, t3) => (print "("; print "IF "; printTerm t1; print " THEN "; printTerm t2; print " ELSE "; printTerm t3; print ")");
+          
       fun isSucc(tok) =
         case tok of
             D.Succ _ => true
@@ -160,23 +173,23 @@ end = struct
       (* 6.1-6.4, 7.1, 8.1-8.2 *)
         if tokA = D.Zero andalso tokB = D.Zero then
           SOME (D.Succ (D.Zero))
-        (* 6.2 *)
+        (* 6.3 *)
         else if tokB = D.Zero andalso isSucc tokA then
           let
-            val othersA = extractSucc tokB
+            val othersA = extractSucc tokA
           in
             if isV othersA then
-              SOME (D.Succ D.Zero)
+              SOME D.Zero
             else
               EightOneEightTwo(tokA, tokB)
           end        
-        (* 6.3 *)
+        (* 6.2 *)
         else if tokA = D.Zero andalso isSucc tokB then
           let
             val othersB = extractSucc tokB
           in
             if isV othersB then
-              SOME (D.Succ D.Zero)
+              SOME D.Zero
             else
               EightOneEightTwo(tokA, tokB)
           end
@@ -215,6 +228,8 @@ end = struct
               SOME tokA' => SOME (D.Cond (tokA', tokB, tokC))
             | _ => NONE;
 
+      val _ = print "\n"
+      val _ = printTerm input
     in
       case input of 
       (* 1.1 *)
@@ -268,8 +283,7 @@ end = struct
         | _ => NONE
 
     end;
-        
-				    
+        	    
   fun eval t = 
     let
       fun lp t =
@@ -280,13 +294,30 @@ end = struct
       lp t
     end;
 
+    fun printTerm(term) =
+      case term of
+          D.Zero => print "Zero"
+        | D.Succ t => (print "Succ "; printTerm t)
+        | D.First t => (print "First "; printTerm t)
+        | D.Second t => (print "Second "; printTerm t)
+        | D.Pair (t1, t2) => (print "(" ; printTerm t1; print ", "; printTerm t2; print ")")
+        | D.Add (t1, t2) => (print "(" ; printTerm t1; print " + "; printTerm t2; print ")")
+        | D.Less (t1, t2) => (print "(" ; printTerm t1; print " < "; printTerm t2; print ")")
+        | D.Subtract (t1, t2) => (print "("; printTerm t1; print " - "; printTerm t2; print ")")
+        | D.Eq (t1, t2) => (print "("; printTerm t1; print " = "; printTerm t2; print ")")
+        | D.Cond (t1, t2, t3) => (print "("; print "IF "; printTerm t1; print " THEN "; printTerm t2; print " ELSE "; printTerm t3; print ")");
+
+  fun lastElement([]) = raise Fail "Empty list"  (* Raise exception when the list is empty *)
+    | lastElement([x]) =  x
+    | lastElement(x::xs) = lastElement(xs);
   fun result input = 
     let
       val result_lst = eval input
+      val res = lastElement result_lst
+      val _ = print "final result \n"
+      val _ = printTerm res
     in
-      case result_lst of
-          x :: _ => Value x
-        | _ => raise Fail "should not be empty"
+      Value res
     end;
 
 end

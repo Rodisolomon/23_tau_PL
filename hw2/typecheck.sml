@@ -6,9 +6,13 @@ end = struct
 
   structure S = Sugary
   structure T = Type
-  fun handleRelational (A, B) = 
+  fun handleCalc (A, B) = 
       case (A, B) of
         (S.Nat _, S.Nat _) => T.Nat
+      | _ => raise Fail "wrong type for relational operator"
+  fun handleRelational (A, B) = 
+      case (A, B) of
+        (S.Nat _, S.Nat _) => T.Bool
       | _ => raise Fail "wrong type for relational operator"
 
   fun typeof input = 
@@ -17,14 +21,16 @@ end = struct
     | S.True => T.Bool
     | S.False => T.Bool
     | S.Unit => T.Unit
-    | S.Add (A, B) => handleRelational (A, B)
-    | S.Subtract (A, B) => handleRelational (A, B) 
+    | S.Add (A, B) => handleCalc (A, B)
+    | S.Subtract (A, B) => handleCalc (A, B) 
+    | S.Less (A, B) => handleRelational (A, B)
     | S.LessEq (A, B) => handleRelational (A, B)
     | S.Greater (A, B) => handleRelational (A, B) 
     | S.GreaterEq (A, B) => handleRelational (A, B)
     | S.Eq (A, B) => 
       (case (typeof A, typeof B) of
-          (_, _) => T.Bool
+          (T.Bool, T.Bool) => T.Bool
+        | _ => T.Bool
       )
     | S.Not (A) =>
       (case typeof A of
@@ -64,8 +70,6 @@ end = struct
       (case (typeof A) of
          T.Product (_ , secondToken) => secondToken
         | _ => raise Fail "expecting T.Product"
-      )    
-    | _ => raise Fail "Unknown type";
-
+      );
 
 end
