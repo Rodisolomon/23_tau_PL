@@ -24,7 +24,7 @@ end = struct
 
   fun isV x = 
     case x of
-     D.Pair(A, B) =>
+     D.Pair(D.First (A), D.Second (B)) =>
      (case (isV A, isV B) of
        (true, true) => true
       | (_, _) => false
@@ -151,9 +151,9 @@ end = struct
           | _ => false;
 
       fun extractPair(tok) = 
-          (* only been called when tok is Succ sth*)
+          (* only been called when tok is pair sth*)
           case tok of 
-              D.Pair (valA, valB) => (valA, valB)
+              D.Pair (D.First(valA), D.Second(valB)) => (valA, valB)
             | _ => (tok, tok); (* neverreachthispoint *)
 
       fun EightOneEightTwo(tokA, tokB) = 
@@ -209,8 +209,12 @@ end = struct
           let
             val (v1, v2) = extractPair tokA
             val (v3, v4) = extractPair tokB
+            (* val _ = print "\nis pair\n"
+            val _ = printTerm v1
+            val result = if isV tokA then "true" else "false";
+            val _ = print result *)
           in
-            if (isV v1) andalso (isV v2) andalso (isV v3) andalso (isV v4) then
+            if (isV tokA) andalso (isV tokB) then
               SOME ( D.Cond(D.Eq (v1, v3), D.Eq (v2, v4), D.Zero) )
             else
               EightOneEightTwo(tokA, tokB) 
@@ -304,7 +308,7 @@ end = struct
         | D.Add (t1, t2) => (print "(" ; printTerm t1; print " + "; printTerm t2; print ")")
         | D.Less (t1, t2) => (print "(" ; printTerm t1; print " < "; printTerm t2; print ")")
         | D.Subtract (t1, t2) => (print "("; printTerm t1; print " - "; printTerm t2; print ")")
-        | D.Eq (t1, t2) => (print "("; printTerm t1; print " = "; printTerm t2; print ")")
+        | D.Eq (t1, t2) => (print "("; printTerm t1; print " == "; printTerm t2; print ")")
         | D.Cond (t1, t2, t3) => (print "("; print "IF "; printTerm t1; print " THEN "; printTerm t2; print " ELSE "; printTerm t3; print ")");
 
   fun lastElement([]) = raise Fail "Empty list"  (* Raise exception when the list is empty *)
@@ -314,10 +318,12 @@ end = struct
     let
       val result_lst = eval input
       val res = lastElement result_lst
-      val _ = print "final result \n"
+      val _ = print "\nfinal result \n"
       val _ = printTerm res
     in
-      Value res
+      case isV res of 
+          false => Stuck res
+        | _ => Value res
     end;
 
 end

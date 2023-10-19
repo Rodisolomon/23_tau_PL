@@ -54,7 +54,11 @@ end = struct
       ) 
     | S.Cond (A, B, C) =>
       (case (typeof A, typeof B, typeof C) of
-         (T.Bool, _, _) => typeof B
+         (T.Bool, typeB, typeC) => 
+            if typeB = typeC then
+              typeB
+            else
+              raise Fail "dif type for Cond operator"
         | _ => raise Fail "wrong type for Cond operator"
       )
     | S.Pair(A, B) => 
@@ -64,12 +68,12 @@ end = struct
     | S.First(A) =>
       (case (typeof A) of
          T.Product (firstToken , _) => firstToken
-        | _ => raise Fail "expecting T.Product"
+        | _ => typeof A
       )       
     | S.Second(A) =>
       (case (typeof A) of
          T.Product (_ , secondToken) => secondToken
-        | _ => raise Fail "expecting T.Product"
+        | _ => typeof A
       );
 
 end
