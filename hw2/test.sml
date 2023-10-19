@@ -58,6 +58,7 @@ structure Test = struct
     let
       val _ = Check.expect (Eval.result D.Zero, Eval.Value D.Zero, "eval0")      
       val _ = Check.expect (Eval.result (D.Pair (D.Succ (D.Zero), D.Succ (D.Zero))), Eval.Value (D.Pair (D.Succ (D.Zero), D.Succ (D.Zero))), "eval0")
+      val _ = Check.expect (Eval.result (D.Pair (D.Succ (D.Zero), D.Succ (D.Zero))), Eval.Value (D.Pair (D.Succ (D.Zero), D.Succ (D.Zero))), "eval0")
 
       (* write more eval tests here *)
     in
@@ -70,7 +71,7 @@ structure Test = struct
 	Check.expect (Compile.code program, (E.Value result, typ), "compile"^program)
       val natval = value Type.Nat
       val boolval = value Type.Bool
-      val _ = natval "0" D.Zero 
+      val _ = natval "0" D.Zero  
       (* write more compile tests here *)
     in
       TextIO.print ("compile tests done\n")
