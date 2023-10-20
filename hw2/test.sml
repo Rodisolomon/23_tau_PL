@@ -22,6 +22,7 @@ structure Test = struct
     let
       val _ = Check.expect (Parse.parse [T.Nat 12], S.Nat 12, "parse12")
       val _ = Check.expect (Parse.parse [T.LBrack, T.Nat 1, T.DoubleEq, T.Nat 2, T.RBrack], S.Eq (S.Nat 1, S.Nat 2), "parse12")
+      val _ = Check.exn (fn () => Parse.parse [T.Minus, T.Nat 1], "badNegNum")
       val _ = Check.exn (fn () => Parse.parse [T.LBrack], "badParse0")
       (* write more parse tests here *)
     in
@@ -32,19 +33,20 @@ structure Test = struct
     let
       val _ = Check.expect (TypeCheck.typeof (S.Nat 12), Type.Nat, "type12") 
       val _ = Check.expect (TypeCheck.typeof (S.Add (S.Nat 1, S.Nat 12)), Type.Nat, "GoodTypeRelational") 
-      val _ = Check.expect (TypeCheck.typeof (S.Eq (S.Nat 1, S.True)), Type.Bool, "GoodTypeEq") 
       val _ = Check.expect (TypeCheck.typeof (S.Eq (S.Nat 0, S.Nat 1)), Type.Bool, "GoodTypeEq2") 
       val _ = Check.expect (TypeCheck.typeof (S.Cond (S.True, S.True, S.False)), Type.Bool, "GoodTypeCond") 
+      val _ = Check.expect (TypeCheck.typeof (S.And (S.True, S.And(S.True, S.False))), Type.Bool, "GoodTypeAnd") 
 
       val _ = Check.expect (TypeCheck.typeof (S.First(S.Pair(S.Nat 1, S.True))), Type.Nat, "GoodTypeTuple") 
       val _ = Check.expect (TypeCheck.typeof (S.Greater (S.Nat 1, S.Nat 0)), Type.Bool, "GoodTypeGreater") 
-      val _ = Check.expect (TypeCheck.typeof (S.Pair (S.First (S.Nat 1), S.Second (S.Nat 1))), Type.Product (Type.Nat, Type.Nat), "GoodTypePair") 
+      val _ = Check.expect (TypeCheck.typeof (S.Pair (S.Nat 1, S.Nat 1)), Type.Product (Type.Nat, Type.Nat), "GoodTypePair")
 
       val _ = Check.exn (fn () => TypeCheck.typeof (S.Add (S.True, S.Nat 12)), "badTypeRelational")
       val _ = Check.exn (fn () => TypeCheck.typeof (S.Eq (S.Add (S.True, S.Nat 12), S.Nat 12)), "badTypeRelational0")
+      val _ = Check.exn (fn () => TypeCheck.typeof (S.Eq (S.Nat 1, S.True)), "badTypeEq")
       val _ = Check.exn (fn () => TypeCheck.typeof (S.Cond (S.Nat 12, S.True, S.Nat 12)), "badTypeConditional1")
       val _ = Check.exn (fn () => TypeCheck.typeof (S.Cond (S.True, S.True, S.Nat 1)), "badTypeConditional2")
-      (* val _ = Check.exn (fn () => TypeCheck.typeof (S.First(S.Nat 1)), "doogTypefirst") *)
+      val _ = Check.exn (fn () => TypeCheck.typeof (S.First(S.Nat 1)), "badTypeFirst")
 
 
     in
@@ -66,7 +68,7 @@ structure Test = struct
   fun eval () =
     let
       val _ = Check.expect (Eval.result D.Zero, Eval.Value D.Zero, "eval0")      
-      val _ = Check.expect (Eval.result (D.Pair (D.First(D.Succ (D.Zero)), D.Second(D.Succ (D.Zero)))), Eval.Value (D.Pair (D.First(D.Succ (D.Zero)), D.Second(D.Succ (D.Zero)))), "eval1")
+      val _ = Check.expect (Eval.result (D.Pair ((D.Succ (D.Zero)), (D.Succ (D.Zero)))), Eval.Value (D.Pair ((D.Succ (D.Zero), D.Succ (D.Zero)))), "eval1")
       val _ = Check.expect (Eval.result (D.Cond (D.Less (D.Zero, D.Succ (D.Zero)), D.Zero, D.Succ (D.Zero))), Eval.Value (D.Zero), "evalGreaterEq")
 
       (* write more eval tests here *)
@@ -81,32 +83,39 @@ structure Test = struct
       val natval = value Type.Nat
       val boolval = value Type.Bool
       val _ = boolval "[T&&T]" (D.Succ D.Zero)
+      val _ = boolval "[!T&&T]" (D.Zero)
       val _ = boolval "[2==1]" (D.Zero)
       val _ = boolval "[2>1]" (D.Succ D.Zero)
+      val _ = boolval "[1>=1]" (D.Succ D.Zero)
       val _ = boolval "[0==0]" (D.Succ D.Zero)
       val _ = boolval "[9<10]" (D.Succ D.Zero)
+      val _ = boolval "[[1+0]<2]" (D.Succ D.Zero)
+      val _ = boolval "[[1-10]<=2]" (D.Succ D.Zero)
       val _ = boolval "[2<1]" (D.Zero)
       val _ = boolval "[T^^T]" (D.Zero)
       val _ = boolval "[[T&&F]^^T]" (D.Succ D.Zero)
       val _ = boolval "[[2<1]&&[2>1]]" (D.Zero)
-      val _ = boolval "[(1#T,2#F)==(1#F,2#F)]" (D.Zero)
-      val _ = boolval "[(1#[T||F],2#F)==(1#F,2#F)]" (D.Zero)
+      val _ = boolval "[(T,F)==(F,F)]" (D.Zero)
+      val _ = boolval "[([T||F],F)==(F,F)]" (D.Zero)
+      val _ = boolval "1#(T, 1)" (D.Succ D.Zero)
+      val _ = boolval "1#([[[T&&F]||T]&&!F], 1)" (D.Succ D.Zero)
+      val _ = boolval "1#([[[T&&F]||T]&&![1<0]], 1)" (D.Succ D.Zero)
+
+
+      val _ = natval "2#(T, 1)" (D.Succ D.Zero)
+      val _ = natval "2#(T, [[1+1]-1])" (D.Succ D.Zero)
 
       val _ = natval "0" D.Zero 
       val _ = Check.expect (Compile.code "1",
                       (E.Value (D.Succ D.Zero), Type.Nat),
                       "compile1")
       val _ = natval "[1+1]" (D.Succ (D.Succ D.Zero))
-      val _ = natval "[2-1]" (D.Succ D.Zero)
-      val _ = Check.expect (Compile.code "(1#T, 2#T)",
-                      (E.Value (D.Pair (D.First (D.Succ D.Zero), D.Second (D.Succ D.Zero))), Type.Product(Type.Bool, Type.Bool)),
+      val _ = natval "[[0+2]+1]" (D.Succ (D.Succ (D.Succ D.Zero)))
+
+      val _ = natval "[[2-1]+1]" (D.Succ (D.Succ D.Zero))
+      val _ = Check.expect (Compile.code "([T||F], T)",
+                      (E.Value (D.Pair ((D.Succ D.Zero), (D.Succ D.Zero))), Type.Product(Type.Bool, Type.Bool)),
                       "compilePairBool")
-
-
-
-
-
-
 
       (* write more compile tests here *)
     in

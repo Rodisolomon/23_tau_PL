@@ -24,7 +24,7 @@ end = struct
 
   fun isV x = 
     case x of
-     D.Pair(D.First (A), D.Second (B)) =>
+     D.Pair(A, B) =>
      (case (isV A, isV B) of
        (true, true) => true
       | (_, _) => false
@@ -66,10 +66,12 @@ end = struct
               SOME (D.Add (others, D.Succ(tokB)))
             else
               (case step others of
-                SOME tokA' => SOME (D.Add (D.Succ tokA', tokB))
+                SOME tokA' => SOME (D.Add (tokA', tokB))
               | _ => NONE)
-          | _ => NONE;
-
+          | _ => 
+            (case step tokA of
+                SOME tokA' => SOME (D.Add (tokA', tokB))
+              | _ => NONE);
       fun threeOneThreeTwo(tokA, tokB) =
         case step tokB of
           SOME tokB' =>
@@ -77,17 +79,17 @@ end = struct
                 SOME (D.Subtract (tokA, tokB'))
             else
                 (case step tokA of 
-                    SOME tokA' => SOME (D.Subtract (tokA', tokB))
+                    SOME tokA' => SOME (D.Add (tokA', tokB))
                   | _ => NONE)
           | _ =>  (case step tokA of 
-                SOME tokA' => SOME (D.Subtract (tokA', tokB))
+                SOME tokA' => SOME (D.Add (tokA', tokB))
               | _ => NONE);
       fun handleSubtr(tokA, tokB) = 
       (* 2.1-2.3, 3.1-3.2 *)
         if tokA = D.Zero andalso isV tokB then
           SOME D.Zero
-        else if tokB = D.Zero andalso isV tokA then
-            SOME tokA
+        else if isV tokA andalso tokB = D.Zero then
+          SOME tokA
         else if (isSucc tokA) andalso (isSucc tokB) then
           let
             val othersA = extractSucc tokA
@@ -153,7 +155,7 @@ end = struct
       fun extractPair(tok) = 
           (* only been called when tok is pair sth*)
           case tok of 
-              D.Pair (D.First(valA), D.Second(valB)) => (valA, valB)
+              D.Pair (valA, valB) => (valA, valB)
             | _ => (tok, tok); (* neverreachthispoint *)
 
       fun EightOneEightTwo(tokA, tokB) = 
@@ -232,8 +234,8 @@ end = struct
               SOME tokA' => SOME (D.Cond (tokA', tokB, tokC))
             | _ => NONE;
 
-      val _ = print "\n"
-      val _ = printTerm input
+      (* val _ = print "\n"
+      val _ = printTerm input *)
     in
       case input of 
       (* 1.1 *)
@@ -264,8 +266,10 @@ end = struct
                 if isV tokA andalso isV tokB then
                   SOME tokA
                 else
-                  NONE
-            | _ =>
+                (case step tok of 
+                  SOME tok' => SOME (D.First (tok'))
+                  | _ => NONE)
+              | _ =>
               (case step tok of 
                 SOME tok' => SOME (D.First (tok'))
                 | _ => NONE
@@ -277,8 +281,10 @@ end = struct
                 if isV tokA andalso isV tokB then
                   SOME tokB
                 else
-                  NONE
-            | _ =>
+                (case step tok of 
+                  SOME tok' => SOME (D.First (tok'))
+                  | _ => NONE)
+              | _ =>
               (case step tok of 
                 SOME tok' => SOME (D.First (tok'))
                 | _ => NONE)
@@ -318,8 +324,8 @@ end = struct
     let
       val result_lst = eval input
       val res = lastElement result_lst
-      val _ = print "\nfinal result \n"
-      val _ = printTerm res
+      (* val _ = print "\nfinal result \n"
+      val _ = printTerm res *)
     in
       case isV res of 
           false => Stuck res
