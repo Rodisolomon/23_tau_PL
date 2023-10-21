@@ -1,0 +1,228 @@
+CMSC 22100 Autumn 2023 HW3
+
+This week's exercise is designed to give you experience with the
+untyped lambda calculus. The untyped lambda calculus is not a
+practical programming language, and one would not use the untyped
+lambda calculus to write software any more than you would write a poem
+by directly typing out the underlying 1s and 0s, but it is an
+important theoretical achievement as it is proven to be capable of
+computing whatever else any other system can compute (including all
+your favorite programming languages).
+
+For HW3, we use the following concrete syntax for the untyped lambda
+calculus:
+
+t ::= x      // variables
+    | (t t)  // applications
+    | [x t]  // abstractions
+
+This term grammar maps directly into the following SML datatype.
+
+datatype term
+  = Var of string
+  | App of term * term
+  | Lam of string * term
+
+A variable, in our implementation, will consist of one or more
+lowercase letters. Any block of lowercase letters is a legal variable
+name.
+
+In addition to the most basic lambda calculus terms, we provide a
+sprinkling of syntactic sugar to make sample programs a bit more
+pleasant to write. Namely, we include the natural numbers 0, 1, etc.,
+booleans written @t and @f, &x for identity functions, and :x for
+abbreviations. Each of these term forms will be described in turn
+below. In the meantime, this sweetened untyped lambda calculus
+programming language has the name "Sweetl" (rhymes with "needle") and
+is the language you will implement for HW3.
+
+(To be precise: this year's language is Sweetl23; it is similar to but
+different from Sweetls of years past.)
+
+Here is the Sweetl term grammar, which is inclusive of the untyped
+lambda calculus as it appears above. A Sweetl program p consists of
+zero or more abbreviation bindings, followed by a term.
+
+p ::= :x = t ; p // abbreviations (bindings)
+    | t
+    
+t ::= x     // variables
+    | (t t) // application
+    | [x t] // abstraction
+    | n     // Church naturals
+    | @t    // Church true
+    | @f    // Church false
+    | &x    // identity functions
+    | :x    // abbreviations (uses)
+    
+x ::= 1 or more lowercase letters
+n ::= 1 or more digits
+
+Sweetl also supports double-slash C-style comments; that is, in a
+Sweetl program, from two slashes to the next line break is a comment,
+which is discarded by the scanner. Comment scanning is already
+implemented in the provided scanner.
+
+An abbreviation binding allows the programmer to abbreviate terms and
+refer to them by shorter, presumably more readable names. For example,
+the Church boolean operator "test" (see Chapter 5 of TaPL) is written
+in the text as (writing "lam" for Greek lambda)
+
+  lam l . lam m . lam n . (l m) n
+
+The corresponding Sweetl expression is
+
+  [l [m [n ((l m) n)]]]
+
+In a Sweetl program, one can introduce an abbreviation for this term
+with the following syntax:
+
+  :test = [l [m [n ((l m) n)]]] ; // more code...
+
+Once the binding is made, the code can use :test elsewhere in the
+program in place of writing out the whole nested
+abstraction. Therefore it is possible to write complicated lambda
+expressions that would otherwise be extremely difficult to write and
+read.
+
+Any natural n is a stand-in for its Church-numeral equivalent; for
+example, "0" is Sweetl shorthand for [s [z z]], "1" is shorthand for
+[s [z (s z)]], etc. Church numerals and arithmetic operations are
+discussed in detail in Chapter 5.
+
+&x is shorthand for the identity function [x x]; it is nothing deep,
+but saves a few keystrokes.
+
+The quasi-boolean @t is a built-in abbreviation for [t [f t]], and @f
+is [t [f f]].
+
+The Sweetl compilation pipeline is as follows:
+
+- scanning (completed and included)
+- parsing  (completed and included)
+- unrolling of abbreviations (TODO)
+- desugaring (TODO)
+- evaluation (TODO, three different ways)
+
+To expand abbreviations in a Sweetl program, each use of an
+abbreviation must be replaced by its definition from earlier in the
+program. At the end of the unroll phase, all the abbreviations ought
+to have been expanded away. For example, consider this
+not-yet-unrolled program:
+
+  :ab = [a b];
+  :cd = [c d];
+  (:ab :cd)
+
+After unrolling abbreviations, it is this:
+
+  ([a b] [c d])
+
+Abbreviations are allowed to refer to prior abbreviations, but not
+later ones. To be more concrete, this (meaningless) program is
+allowed:
+
+  :ab = [a b];
+  :x  = (:ab :ab);
+  0
+
+but this one is not:
+
+  :x  = (:ab :ab);
+  :ab = [a b];
+  0
+
+Following unrolling, desugaring replaces natural numbers and booleans
+with their Church encodings, and rewrites identity functions like &w
+to their concrete forms [w w].
+
+Subsequent to abbreviation unrolling and desugaring, we should have a
+plain untyped lambda calculus term ready to be evaluated. There are
+three different evaluation systems (all similar) to implement
+according to the so called "call-by-value", "lazy" and "full-beta"
+reduction conventions. Note that one and the same program might
+evaluate differently under the different systems.
+
+The call-by-value system is given in Figure 5-3 on page 72 of TaPL. It
+is a model for the most common evaluation strategy in practical
+programming.
+
+The lazy system is given on p. 503 as part of an answer to an
+exercise. This is (roughly speaking) Haskell's evaluation order; it is
+uncommon among practical languages, but not unheard of.
+
+The full-beta reduction system is immediately under the 5.3.6 Solution
+heading on p. 502. Please be aware that full-beta system is *missing*
+one of its rules, namely
+
+        t1 -> t1'
+-------------------------
+lam x . t1 -> lam x . t1'
+
+You can confirm this omission at
+https://www.cis.upenn.edu/~bcpierce/tapl/errata.txt.
+
+Since the full-beta system is nondeterministic, there are different
+valid ways you can write the code. The other two evaluation systems
+are deterministic and algorithmic, and thus their implementation,
+while still allowing for customization according to style, are not as
+open-ended.
+
+Substitution is the way everything ultimately happens in the untyped
+lambda calculus, since function application and the substitutions it
+entails are the one and only way of computing anything. Chapter 5 of
+TaPL includes a detailed description of substitution; our substitution
+algorithm is given here.
+
+First, we have the following definition of FV for "free variables":
+
+  FV(x)             = {x}
+  FV(t1 t2)         = FV(t1) U FV(t2)
+  FV(lambda x . t1) = FV(t1) \ {x}
+
+Here, {x} is the set of one variable x, U stands for set union, and
+backslash \ stands for set difference. To implement this algorithm,
+first implement all the operations in the VarSet module, then
+implement the function fv in the Subst module according to this
+definition and using those set operations. (We will take a few moments
+in lecture to talk about this set programming, since it has
+some features worth discussing.)
+
+Having implemented Subst.fv, we have the following algorithmic
+definition of substitution:
+
+  [x |-> s] x = s   // where the two xs are syntactically identical
+
+  [x |-> s] y = y   // where x and y are syntactically distinct
+
+  [x |-> s] (t1 t2) = ([x |-> s]t1  [x |->s]t2)
+
+  [x |-> s] (lam x . t1) = lam x . t1 // the two xs are syntactically identical
+
+  [x |-> s] (lam y . t1) = // where x and y are syntactically distinct
+
+    if y is in FV(s) : [x |->s] (lam y' . t1')
+        where y' is a fresh variable name and in t1' y is rewritten to y'
+
+    if y is not in FV(x) : lam y . [x |-> s] t1
+
+The Fresh module supplies a brand new fresh variable name every time
+it is called. You can call Fresh.var() any time and be guaranteed a
+brand new variable name appearing nowhere else in the program.
+
+Read the code in the Compile module to see the different ways you can
+compile Sweetl programs. There are several. The Sweetl compiler is
+talkative; it says a lot about what it is doing as compilation
+proceeds from one stage to another. This should help you with HW3
+debugging and development.
+
+As usual, the occurrences of the string "todo" in the starter code
+provide a high-level map of what to do for this homework. Also, there
+is a SweetlCode directory with some sample Sweetl programs in it; feel
+free to write your own. Remember, you can compile code in files and
+not just directly typed at the command line. In their own files, and
+with Sweetl's abbreviation features, you can write longer and more
+complicated Sweetl programs than otherwise with relatively little
+difficulty.
+
+Enjoy!
