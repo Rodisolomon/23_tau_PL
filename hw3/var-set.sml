@@ -10,16 +10,20 @@ structure VarSet :> sig
 
 end = struct
 
-  type set = int (* <== Change this to something else! *)
+  type set = string lst
+  val empty = []
 
-  val empty = 0  (* <== Change this to something consistent with the new set type. *)
-
-  fun mem _ = raise Fail "todo: VarSet.mem"
-
-  fun ins _ = raise Fail "todo: VarSet.ins"
-
-  fun rem _ = raise Fail "todo: VarSet.rem"
-
-  fun union _ = raise Fail "todo: VarSet.union"
+  fun mem (str, s) = 
+    case List.find (fn y => y = str) s of
+        SOME _ => true
+      | NONE => false;
+  fun ins (str, s) = 
+    if mem (str, s) then 
+      s
+    else 
+      str::s;
+  fun rem (str, s) = 
+    List.filter (fn y => y <> str) s;
+  fun union (s1, s2) = List.foldl insert s2 s1
 				      
 end
