@@ -10,7 +10,7 @@ structure VarSet :> sig
 
 end = struct
 
-  type set = string lst
+  type set = string list
   val empty = []
 
   fun mem (str, s) = 
@@ -24,6 +24,7 @@ end = struct
       str::s;
   fun rem (str, s) = 
     List.filter (fn y => y <> str) s;
-  fun union (s1, s2) = List.foldl insert s2 s1
+  fun union (s1, s2) = List.foldl ins
+   s2 s1;
 				      
 end
