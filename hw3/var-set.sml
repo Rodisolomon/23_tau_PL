@@ -7,7 +7,7 @@ structure VarSet :> sig
   val ins   : string * set -> set
   val rem   : string * set -> set
   val union : set * set -> set
-
+  val singleTerm: string -> set
 end = struct
 
   type set = string list
@@ -24,7 +24,7 @@ end = struct
       str::s;
   fun rem (str, s) = 
     List.filter (fn y => y <> str) s;
-  fun union (s1, s2) = List.foldl ins
-   s2 s1;
+  fun union (s1, s2) = List.foldl ins s2 s1;
+  fun singleTerm (s) = [s]
 				      
 end
