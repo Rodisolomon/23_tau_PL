@@ -13,6 +13,7 @@ structure Sweetl = struct
   datatype prog
     = Prog of (string * term) list * term
       (* convention: strings do not include the $ *)
+      (* a list of string-term tuple, and the large term *)
 				       
   fun tos (Prog (abbs, t)) =
     let

@@ -98,11 +98,13 @@ is [t [f f]].
 
 The Sweetl compilation pipeline is as follows:
 
+###################################################
 - scanning (completed and included)
 - parsing  (completed and included)
 - unrolling of abbreviations (TODO)
 - desugaring (TODO)
 - evaluation (TODO, three different ways)
+###################################################
 
 To expand abbreviations in a Sweetl program, each use of an
 abbreviation must be replaced by its definition from earlier in the
