@@ -12,6 +12,7 @@ end = struct
   (* some renamings for convenience... *)
   val lam = ULC.Lam
   val v   = ULC.Var
+  val a = ULC.App
 
 
   fun unroll () =
@@ -42,7 +43,7 @@ end = struct
   let
     val _ = Check.expect(D.desugar(S.Var("a")), ULC.Var("a"), "desugar 1")
     val _ = Check.expect(D.desugar(S.Lam("var", S.Tru)), ULC.Lam("var", ULC.Lam("t", ULC.Lam("f", ULC.Var("t")))), "desugar 2")
-    val _ = Check.expect(D.desugar(S.Nat(1)), ULC.Lam("s", ULC.Lam("z", ULC.App(ULC.Var("s"), ULC.Lam("s", ULC.Lam("z", ULC.Var("z")))))), "desugar 2")
+    val _ = Check.expect(D.desugar(S.Nat(1)), ULC.Lam("s", ULC.Lam("z", ULC.App(ULC.Var("s"), ULC.Var("z")))), "desugar 3")
   in
     TextIO.print "desugar tests done\n"
   end
@@ -69,9 +70,9 @@ end = struct
       val _ = Check.expect (Compile.cbv "@t",
 			    lam ("t", lam ("f", v "t")),
 			    "test3")   
-        (* val _ = Check.expect (Compile.cbv ("", ),
-			    lam ("t", lam ("f", v "t")),
-			    "test3")        *)
+      val _ = Check.expect (Compile.cbv ":add = [m [n [s [z ((m s) ((n s) z))]]]]; ((:add 1) 1)",
+        lam("s", lam("z", a (v ("s"), lam("s", lam("z", v ("z")))))),
+        "test3")       
 
       (* full beta *)
       val _ = Check.expect (Compile.fullBeta "([x x] [y y])",
