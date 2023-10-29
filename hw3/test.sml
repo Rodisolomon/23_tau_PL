@@ -40,22 +40,19 @@ end = struct
     end     
 
   fun desugar () = 
-  let
-    val _ = Check.expect(D.desugar(S.Var("a")), ULC.Var("a"), "desugar 1")
-    val _ = Check.expect(D.desugar(S.Lam("var", S.Tru)), ULC.Lam("var", ULC.Lam("t", ULC.Lam("f", ULC.Var("t")))), "desugar 2")
-    val _ = Check.expect(D.desugar(S.Nat(1)), ULC.Lam("s", ULC.Lam("z", ULC.App(ULC.Var("s"), ULC.Var("z")))), "desugar 3")
-  in
-    TextIO.print "desugar tests done\n"
-  end
+    let
+      val _ = Check.expect(D.desugar(S.Var("a")), ULC.Var("a"), "desugar 1")
+      val _ = Check.expect(D.desugar(S.Lam("var", S.Tru)), ULC.Lam("var", ULC.Lam("t", ULC.Lam("f", ULC.Var("t")))), "desugar 2")
+      val _ = Check.expect(D.desugar(S.Nat(1)), ULC.Lam("s", ULC.Lam("z", ULC.App(ULC.Var("s"), ULC.Var("z")))), "desugar 3")
+    in
+      TextIO.print "desugar tests done\n"
+    end
 
-  fun subst() = ()
-  fun full_beta() = ()
 
   fun all () = 
     let
       val _ = unroll()
       val _ = desugar()
-      val _ = subst()
       val _ = full_beta()
       (* cbv *)
       val _ = Check.expect (Compile.cbv "([x x] [y y])",
