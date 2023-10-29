@@ -70,9 +70,18 @@ end = struct
       val _ = Check.expect (Compile.cbv "@t",
 			    lam ("t", lam ("f", v "t")),
 			    "test3")   
-      val _ = Check.expect (Compile.cbv ":add = [m [n [s [z ((m s) ((n s) z))]]]]; ((:add 1) 1)",
+      val _ = Check.expect (Compile.cbv ":aa = &a;:bb = &b;(:aa :bb)",
+			    lam ("b", v "b"),
+			    "test4")  
+      val _ = Check.expect (Compile.cbv ":or = [b [c ((b @t) c)]];((:or @f) @f)",
+			    lam ("t", lam ("f", v "f")),
+			    "test5") 
+      val _ = Check.expect (Compile.cbv "([x x] y)",
+			    a (lam ("x", v "x"), v "y"),
+			    "test6")
+      (* val _ = Check.expect (Compile.fullBeta ":add = [m [n [s [z ((m s) ((n s) z))]]]]; ((:add 1) 1)",
         lam("s", lam("z", a (v ("s"), lam("s", lam("z", v ("z")))))),
-        "test3")       
+        "test3")        *)
 
       (* full beta *)
       val _ = Check.expect (Compile.fullBeta "([x x] [y y])",
@@ -84,9 +93,40 @@ end = struct
       val _ = Check.expect (Compile.fullBeta ":idx=&x; (:idx &y)",
 			    lam ("y", v "y"),
 			    "fbtest2")
-      (* lazy *)
+        val _ = Check.expect (Compile.fullBeta ":aa = &a;:bb = &b;(:aa :bb)",
+			    lam ("b", v "b"),
+			    "fbtest3")  
+      val _ = Check.expect (Compile.fullBeta ":or = [b [c ((b @t) c)]];((:or @f) @f)",
+			    lam ("t", lam ("f", v "f")),
+			    "fbtest4") 
+      val _ = Check.expect (Compile.fullBeta "([x x] y)",
+			    v "y",
+			    "fbtest5") 
 
+      (* lazy *)
+      val _ = Check.expect (Compile.lazy "([x x] [y y])",
+			    lam ("y", v "y"),
+			    "lztest0")
+      val _ = Check.expect (Compile.lazy "(&x &y)",
+			    lam ("y", v "y"),
+			    "lztest1")
+      val _ = Check.expect (Compile.lazy ":idx=&x; (:idx &y)",
+			    lam ("y", v "y"),
+			    "lztest2")
+      val _ = Check.expect (Compile.lazy ":aa = &a;:bb = &b;(:aa :bb)",
+          lam ("b", v "b"),
+          "lztest3")  
+      val _ = Check.expect (Compile.lazy ":or = [b [c ((b @t) c)]];((:or @f) @f)",
+			    lam ("t", lam ("f", v "f")),
+			    "lztest5") 
+      val _ = Check.expect (Compile.lazy "([x x] y)",
+			    v "y",
+			    "lztest6") 
     in
+      println "== start compiled file tests...";
+      Compile.fullBetaFile "SweetlCode/add.sw";
+      Compile.cbvFile "SweetlCode/add.sw";
+      Compile.lazyFile "SweetlCode/add.sw";
       println "== tests complete"
     end
 

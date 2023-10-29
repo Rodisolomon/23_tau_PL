@@ -25,6 +25,5 @@ end = struct
   fun rem (str, s) = 
     List.filter (fn y => y <> str) s;
   fun union (s1, s2) = List.foldl ins s2 s1;
-  fun singleTerm (s) = [s]
 				      
 end
