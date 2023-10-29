@@ -53,7 +53,6 @@ end = struct
     let
       val _ = unroll()
       val _ = desugar()
-      val _ = full_beta()
       (* cbv *)
       val _ = Check.expect (Compile.cbv "([x x] [y y])",
 			    lam ("y", v "y"),
