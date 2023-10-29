@@ -1,0 +1,40 @@
+Group
+  signature CHECK
+  structure Check
+  structure Test
+  structure ReadFile
+  structure Token
+  structure Scan
+  structure Parse
+  structure Type
+  structure TypeEnv
+  structure TypeCheck
+  structure Sugary
+  structure ULC
+  structure Desugar
+  structure Fresh
+  structure VarSet
+  structure Subst
+  structure FullBeta
+  structure Compile
+is
+  $/basis.cm
+  $/smlnj-lib.cm
+  check.sig
+  check.sml
+  test.sml
+  token.sml
+  scan.sml
+  parse.sml
+  type.sml
+  type-env.sml
+  typecheck.sml
+  sugary.sml
+  ulc.sml
+  desugar.sml
+  fresh.sml
+  var-set.sml
+  subst.sml
+  full-beta.sml
+  read-file.sml
+  compile.sml
