@@ -57,7 +57,12 @@ fun expandList ([], dict) = dict
       expandTerm(term, dict)
     end
 
-  fun unroll (S.Prog([], _)) = raise Fail "empty list"
+  fun containsAbbr (S.Abbr _) = true
+    | containsAbbr (S.App (t1, t2)) = containsAbbr t1 orelse containsAbbr t2
+    | containsAbbr (S.Lam (_, t)) = containsAbbr t
+    | containsAbbr _ = false;
+
+  fun unroll (S.Prog([], term)) = if containsAbbr term then raise Fail "abbr not exist" else term
     | unroll (S.Prog(list, term)) = unrollHelper(list, term)
 end
 

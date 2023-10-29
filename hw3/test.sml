@@ -41,8 +41,8 @@ end = struct
   fun desugar () = 
   let
     val _ = Check.expect(D.desugar(S.Var("a")), ULC.Var("a"), "desugar 1")
-    val _ = Check.expect(D.desugar(S.Lam("var", S.Tru)), ULC.Lam("var", ULC.Lam("x", ULC.Lam("y", ULC.Var("x")))), "desugar 2")
-    val _ = Check.expect(D.desugar(S.Nat(1)), ULC.Lam("f", ULC.Lam("x", ULC.App(ULC.Var("f"), ULC.Lam("f", ULC.Lam("x", ULC.Var("x")))))), "desugar 2")
+    val _ = Check.expect(D.desugar(S.Lam("var", S.Tru)), ULC.Lam("var", ULC.Lam("t", ULC.Lam("f", ULC.Var("t")))), "desugar 2")
+    val _ = Check.expect(D.desugar(S.Nat(1)), ULC.Lam("s", ULC.Lam("z", ULC.App(ULC.Var("s"), ULC.Lam("s", ULC.Lam("z", ULC.Var("z")))))), "desugar 2")
   in
     TextIO.print "desugar tests done\n"
   end
@@ -56,7 +56,8 @@ end = struct
       val _ = desugar()
       val _ = subst()
       val _ = full_beta()
-      (* val _ = Check.expect (Compile.cbv "([x x] [y y])",
+      (* cbv *)
+      val _ = Check.expect (Compile.cbv "([x x] [y y])",
 			    lam ("y", v "y"),
 			    "test0")
       val _ = Check.expect (Compile.cbv "(&x &y)",
@@ -64,8 +65,26 @@ end = struct
 			    "test1")
       val _ = Check.expect (Compile.cbv ":idx=&x; (:idx &y)",
 			    lam ("y", v "y"),
-			    "test2") *)
-      (* tests here *)
+			    "test2")
+      val _ = Check.expect (Compile.cbv "@t",
+			    lam ("t", lam ("f", v "t")),
+			    "test3")   
+        (* val _ = Check.expect (Compile.cbv ("", ),
+			    lam ("t", lam ("f", v "t")),
+			    "test3")        *)
+
+      (* full beta *)
+      val _ = Check.expect (Compile.fullBeta "([x x] [y y])",
+			    lam ("y", v "y"),
+			    "fbtest0")
+      val _ = Check.expect (Compile.fullBeta "(&x &y)",
+			    lam ("y", v "y"),
+			    "fbtest1")
+      val _ = Check.expect (Compile.fullBeta ":idx=&x; (:idx &y)",
+			    lam ("y", v "y"),
+			    "fbtest2")
+      (* lazy *)
+
     in
       println "== tests complete"
     end
