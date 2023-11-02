@@ -7,12 +7,17 @@ structure TypeEnv : sig
   val extend : env * string * Type.typ -> env
 	    
 end = struct
-
-  type env = unit (* todo: replace this *)
+  (* todo: two list must have same length *)
+  type env = (string * Type.typ) list 
 	       
-  val empty = () (* todo: replace this *)
+  val empty = [] (* as var-set, still use a list *)
 
-  fun lookup _ = raise Fail "todo"
-  fun extend _ = raise Fail "todo"
+  fun lookup (env, key) = 
+    case List.find (fn (k, _) => k = key) env of
+         NONE => NONE
+       | SOME (_, typ) => SOME typ
+
+
+  fun extend (env, new_key, new_type) = (new_key, new_type) :: env
 					  
 end
