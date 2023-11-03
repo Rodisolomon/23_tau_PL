@@ -1,4 +1,4 @@
-structure TypeEnv : sig
+structure TypeEnv :> sig
 
   type env
 
