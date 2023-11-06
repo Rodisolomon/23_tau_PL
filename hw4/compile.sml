@@ -10,7 +10,7 @@ structure Compile : sig
 end = struct
 
   datatype result
-    = Value of string * Type.typ
+    = Value of string * Type.typ 
     | TypeError of string
 
   fun eval t =
@@ -25,8 +25,13 @@ end = struct
     in
      (case TypeCheck.typeof (TypeEnv.empty, sweet)
         of tau => let
+              fun println s = TextIO.print (s ^ "\n")
 	            val unsweet = Desugar.desugar sweet
-		    val norm    = eval unsweet
+              val _ = println "==new term=="
+		          val norm = eval unsweet
+              val _ = println program
+              val _ = println (ULC.tos norm)
+              val _ = println (Type.tos tau)
 	          in
 	            Value (ULC.tos norm, tau)
 	end)

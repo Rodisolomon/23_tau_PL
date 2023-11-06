@@ -19,7 +19,6 @@ end = struct
       val tru = U.Lam("t", U.Lam("f", U.Var("t")))
       val fls = U.Lam("t", U.Lam("f", U.Var("f")))
       (* fun isZero n = U.Lam(Fresh.var(), U.App(U.App(n, U.Lam("x", fls)), tru)); *)
-      fun isZero n = S.Eq(n, S.Nat(0))
       fun predChurch () = U.Lam("n", U.Lam("f", U.Lam("x", 
         U.App(
           U.App(
@@ -42,62 +41,67 @@ end = struct
         (*calculation*)
 
         | S.Add (a, b) => 
-          U.Lam("a", U.Lam("b", 
-              U.Lam("s", 
-                U.Lam("z", U.App(U.App(desugar a, U.Var("s")), U.App(U.App(desugar b, U.Var("s")), U.Var("z")))
-                ))))
+          U.Lam("s", 
+            U.Lam("z", U.App(U.App(desugar a, U.Var("s")), U.App(U.App(desugar b, U.Var("s")), U.Var("z")))
+            )
+          )
         | S.Mul (a, b) => 
-          U.Lam("a",
-            U.Lam("b",
-              U.App(
-                U.App(desugar a, U.Lam("x", U.App(U.App(desugar (S.Add (b, S.Var "x")), U.Var "s"), U.Var "z"))),  (* This is essentially (plus n) *)  
-                desugar (S.Nat(0))
-              )
+          U.Lam("s",
+            U.Lam("z", U.App( U.App( desugar a, U.App(desugar b, U.Var("s")) ), U.Var("z") )
             )
           )
         | S.Subtract (a, b) =>
           let
             val pred = 
-            U.Lam("n",U.Lam("f",U.Lam("x", 
+            U.Lam("n",U.Lam("s",U.Lam("z", 
               U.App(U.App
                 (U.App
-                  (U.Var("n"),U.Lam("g", U.Lam("h", U.App(U.Var("h"), U.App(U.Var("g"), U.Var("f")))))), 
-                  U.Lam("u", U.Var("x"))
+                  (U.Var("n"),U.Lam("g", U.Lam("h", U.App(U.Var("h"), U.App(U.Var("g"), U.Var("s")))))), 
+                  U.Lam("u", U.Var("z"))
                 ),
                 U.Lam("u", U.Var("u")))
               )))
               (* pred = λn.λf.λx.[[[n (λg.λh.h (g f))] (λu.x)] (λu.u)] *)
           in
-            U.Lam("a", U.Lam("b", U.App( U.App(desugar(b), pred), desugar(a) ) ))
+            U.App( U.App(desugar(b), pred), desugar(a) )
           end
         | S.Pow (x, n) => 
-          U.Lam("x", U.Lam("n", U.App(desugar(x), desugar(n))))
+          U.Lam("s",
+            U.Lam("z",
+              U.App( U.App( U.App(desugar(n), desugar(x)), U.Var("s") ), U.Var("z") )
+            )
+          )
 
         (*compare*)
 
         | S.Greater(m, n) =>
-          desugar (S.Not (S.Less(m, n)))
+          desugar (S.Not (S.LessEq(m, n)))
         | S.GreaterEq(m, n) =>
           desugar (S.LessEq(n, m))
         | S.Less(m, n) =>
-          desugar (S.Not( isZero(S.Subtract(m, n))) )
+          desugar (S.Not (S.Greater(m, n)))
         | S.LessEq(m, n) => 
-          desugar (S.Or(S.Less(m, n), S.Eq(m, n)))
+          let
+            val SubtrTerm = desugar (S.Subtract(m, n))
+            val LEQisZero = U.App(U.App(SubtrTerm, U.Lam("x", fls)), tru)
+          in
+            LEQisZero
+          end
         | S.Eq(m, n) => 
           let
-            val not_less_m_n = S.Not(S.Less(m, n))
-            val not_less_n_m = S.Not(S.Less(n, m))
+            val not_less_m_n = S.LessEq(m, n)
+            val not_less_n_m = S.LessEq(n, m)
           in
             desugar (S.And(not_less_m_n, not_less_n_m))
           end
         (*condition*)
 
         | S.Not (x) => 
-            U.Lam("x", U.App(U.App(desugar(x), desugar(S.False)), desugar S.True))
+          U.App(U.App(desugar x, fls), tru)
         | S.And(a, b) => 
-            U.Lam("a", U.Lam("b", U.App(U.App (desugar a, desugar b), desugar a)))
+          U.App(U.App(desugar a, desugar b), fls)
         | S.Or(a, b) => 
-            U.Lam("a", U.Lam("b", U.App(U.App(desugar a, desugar a), desugar b)))
+          U.App(U.App(desugar a, desugar a), desugar b)
         | S.Xor(a, b) =>
           let
             fun nand (x, y) = S.Not(S.And(x, y))
@@ -110,12 +114,12 @@ end = struct
 
         (*others*)
         | S.Pair (a, b) => 
-            U.Lam("a", U.Lam("b", U.Lam( "f", U.App( U.App(U.Var("f"), desugar a), desugar b ) )))
+            U.Lam( "f", U.App( U.App(U.Var("f"), desugar a), desugar b ) )
         | S.First (pair) => 
-            U.Lam("p", U.App( desugar(pair), desugar(S.True)))
+            U.App( desugar(pair), desugar(S.True))
         | S.Second (pair) => 
-            U.Lam("p", U.App( desugar(pair), desugar(S.False)))
-        | S.Var (s) => U.Var(s)
+            U.App( desugar(pair), desugar(S.False))
+        | S.Var(s) => U.Var(s)
         | S.Let(s, t1, t2) => U.App (U.Lam (s, desugar t2), desugar t1)
         (* for existing U.val *)
           
