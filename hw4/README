@@ -8,7 +8,7 @@ lambda calculus expression. This means that we can reuse the front end
 (scanner and parser), with minor modifications, from HW2, as well as
 the back end (evaluator) from HW3. This leaves HW4 as the
 implementation of the middle part of the compiler, namely,
-typechecking and desugaring. As before, we will typecheck first, then
+**typechecking and desugaring**. As before, we will typecheck first, then
 desugar. The current language is named "L23 sub x Gamma lambda beta,"
 or "L23_xglub" for short. Why the language has this particular name is
 left as a matter to reflect upon.
@@ -17,12 +17,7 @@ L23_xglub is the L23_tau language with some additions. most
 consequentially, the language include variables by way of a let
 expression form. It also includes a few extra arithmetic
 operators. The arithmetic operators are a minor extension to L23_tau,
-entailing only a few more cases to desugar in the implementation than
-otherwise. The inclusion of variables is, however, impactful. As we
-have discussed in lecture, once there are variables in a language,
-there must be typing environments included in all the typing rules,
-not just the obviously relevant ones, since variables can appear
-essentially anywhere in a program.
+entailing only a few more cases to desugar in the implementation than otherwise. The inclusion of variables is, however, impactful. As we have discussed in lecture, once there are variables in a language, there must be typing environments included in all the typing rules, not just the obviously relevant ones, since variables can appear essentially anywhere in a program.
 
 The TypeEnv module looks like this:
 
@@ -35,14 +30,8 @@ The TypeEnv module looks like this:
 	    
   end = ...
  
-The types in the TypeEnv signature as stated ought to make clear what
-each of the operations is intended to do. We use "opaque ascription"
-here by way of the :> operator, as we did with VarSet in HW3. This
-hides the implementation of environments from code outside the module;
-this both reduces the likelihood of errors outside the module, since
-only the provided operations are available, and guarantees freedom of
-implementation inside it (since outer code is forbidden to depend on
-the implementation choice).
+The types in the TypeEnv signature as stated ought to make clear what each of the operations is intended to do. We use "opaque ascription" here by way of the :> operator, as we did with VarSet in HW3. This hides the implementation of environments from code outside the module;
+this both reduces the likelihood of errors outside the module, since only the provided operations are available, and guarantees freedom of implementation inside it (since outer code is forbidden to depend on the implementation choice).
 
 The term grammar for L23_xglub is as follows:
 
@@ -80,29 +69,13 @@ takes care of scanning variables on your behalf.
 
 The typing rules for L23_xglub are given in the accompanying PDF.
 
-Desugaring is done after typechecking, and is mostly accomplished by
-translation of numbers, booleans, arithmetic operations, etc., as
-described in Chapter 5 of TaPL.
+Desugaring is done after typechecking, and is mostly accomplished by translation of numbers, booleans, arithmetic operations, etc., as described in Chapter 5 of TaPL.
 
-Natural numbers should be desugared to Church numerals; true and false
-should be desugared to Church booleans; unit should be desugared to
-Church zero. Pairs should be desugared to Church pairs. All of this is
-presented in Chapter 5.
+Natural numbers should be desugared to Church numerals; true and false should be desugared to Church booleans; unit should be desugared to Church zero. Pairs should be desugared to Church pairs. All of this is presented in Chapter 5.
 
-You will need to scrutinize Chapter 5 closely to gather all the
-encodings for the various arithmetic and boolean operations. Some of
-the encodings are given in the main text of Chapter 5 itself, while
-some are given in solutions to Chapter 5 exercises at the back of the
-book. Moreover, some operations have multiple encodings given; feel
-free to select among the alternatives. We will not provide an exact
-roadmap for locating every operation in the text; you'll have to read
-through it.
+You will need to scrutinize Chapter 5 closely to gather all the encodings for the various arithmetic and boolean operations. Some of the encodings are given in the main text of Chapter 5 itself, while some are given in solutions to Chapter 5 exercises at the back of the book. Moreover, some operations have multiple encodings given; feel free to select among the alternatives. We will not provide an exact roadmap for locating every operation in the text; you'll have to read through it.
 
-Please note that the encodings for exponentiation given in Appendix A
-are incorrect. (I discovered this while preparing my prototype.) The
-variables m and n should switch positions in the solutions given at
-the back of the book. You can verify this error at
-https://www.cis.upenn.edu/~bcpierce/tapl/, Errata, note on p. 500.
+Please note that the encodings for exponentiation given in Appendix A are incorrect. (I discovered this while preparing my prototype.) The variables m and n should switch positions in the solutions given at the back of the book. You can verify this error at https://www.cis.upenn.edu/~bcpierce/tapl/, Errata, note on p. 500.
 
 Desugaring the let form
 
@@ -112,48 +85,25 @@ is accomplished by rewriting it to
 
   (lam x . t2') t1'
 
-where t2' and t1' are the desugared forms of their
-counterparts. Notice how this translation works. In the rewritten
-expression, the term t1' is, by way of function application,
-substituted into t2' for all occurrences of x. But that is exactly what
-we want "let x = t1 in t2" to mean as well. This makes it a viable
-translation.
+where t2' and t1' are the desugared forms of their counterparts. Notice how this translation works. In the rewritten expression, the term t1' is, by way of function application, substituted into t2' for all occurrences of x. But that is exactly what we want "let x = t1 in t2" to mean as well. This makes it a viable translation.
 
-There is a special case in the desugaring phase unlike all the others;
-that is the case of polymorphic equality. [1==2] in the untyped lambda
-calculus is something quite different from [(1,2)==(3,4)]. In order to
-desugar an expression [t1 == t2], your code should check the type of
-the subterms *during* the desugaring algorithm, and translate
-accordingly. Knowing the types of the subterms will allow you to
-perform the correct translations.
+There is a special case in the desugaring phase unlike all the others; 
+that is the case of polymorphic equality. [1==2] in the untyped lambda calculus is something quite different from [(1,2)==(3,4)]. In order to desugar an expression [t1 == t2], your code should check the type of the subterms *during* the desugaring algorithm, and translate accordingly. Knowing the types of the subterms will allow you to perform the correct translations.
 
-A desugaring phase that relies on typechecking is, technically, a
-matter of more than mere "sugar." When an internal translation from
-one language into another is guided by types, it is more commonly
-called an "elaboration" phase.
+A desugaring phase that relies on typechecking is technically, a matter of more than mere "sugar." When an internal translation from one language into another is guided by types, it is more commonly called an "elaboration" phase.
 
-Once typechecking is done, types are discarded in the desugared (i.e.,
-elaborated) program. This is typical in compilers of all
-kinds. (Machine language is untyped, after all.) The "upstream" types
-nevertheless guarantee the good behavior of the desugared program,
-assuming a correctly designed and correctly implemented type system,
-which is to say that the type system gives us confidence that our
-possibly-unsafe compiled ULC programs are safe to run after all.
+Once typechecking is done, types are discarded in the desugared (i.e., elaborated) program. This is typical in compilers of all
+kinds. (Machine language is untyped, after all.) The "upstream" types nevertheless guarantee the good behavior of the desugared program, assuming a correctly designed and correctly implemented type system, which is to say that the type system gives us confidence that our possibly-unsafe compiled ULC programs are safe to run after all.
 
-To evaluate compiled programs, we always use full-beta reduction in
-the HW4 compiler. As you likely encountered while working on HW3,
-terms reduced with full-beta reduction tend to have more easily
-readable normal forms than otherwise (for example, Church numeral
-results of arithmetic operations). You could use other evaluation
-systems in principle, but we will go ahead and use full-beta here.
+To evaluate compiled programs, we always use full-beta reduction in the HW4 compiler. As you likely encountered while working on HW3, terms reduced with full-beta reduction tend to have more easily readable normal forms than otherwise (for example, Church numeral results of arithmetic operations). You could use other evaluation systems in principle, but we will go ahead and use full-beta here.
 
-For the time being, since this homework assignment is to be published
-before HW3 is due, we have left some of the internal components
-stubbed out -- those that overlap with HW3. Once HW3 has been
-collected from all students, we will release reference implementations
-of VarSet, Subst, FullBeta etc. to help students avoid compounded
-mistakes on consecutive homework assignments. Nevertheless, it is
-preferable to use your *own* back-end components in this compiler if
-at all possible. That is, if some of your code weren't working at the
-end of HW3, you might take this opportunity to patch it up.
+For the time being, since this homework assignment is to be published before HW3 is due, we have left some of the internal components stubbed out -- those that overlap with HW3. Once HW3 has been collected from all students, we will release reference implementations of VarSet, Subst, FullBeta etc. to help students avoid compounded mistakes on consecutive homework assignments. Nevertheless, it is preferable to use your *own* back-end components in this compiler if at all possible. That is, if some of your code weren't working at the end of HW3, you might take this opportunity to patch it up.
+
+List of file to be done:
+
+fullbeta.sml done
+subst.sml done
+tyoe-env.sml done
+typecheck.sml done
+desugar.sml
 

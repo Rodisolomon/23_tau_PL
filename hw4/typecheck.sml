@@ -70,11 +70,8 @@ end = struct
           ) 
         | (_, S.Eq (A, B)) => 
           (case (typeof (env, A), typeof (env, B)) of
-              (typeA, typeB) => 
-                if typeA = typeB then
-                  T.Bool
-                else
-                  raise Fail "dif type for Cond operator"
+              (T.Nat, T.Nat) => T.Bool
+            | _ => raise Fail "dif type for Cond operator"
           )
         | (_, S.Cond (A, B, C)) =>
           (case (typeof (env, A), typeof (env, B), typeof (env, C)) of
