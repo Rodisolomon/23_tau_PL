@@ -29,9 +29,9 @@ end = struct
 
       fun processAdd (env, new_key, new_type) = 
         let
-          val _ = E.extend (env, new_key, new_type)
+          val new_env = E.extend (env, new_key, new_type)
         in
-          new_type
+          new_env
         end;
 
     in
@@ -103,10 +103,14 @@ end = struct
         ) 
       | (_, S.Let(s, t1, t2)) =>
         (case typeof (env, t1) of
-            tau => 
+          tau => 
+            let
+              val env = processAdd (env, s, tau)
+            in
               (case typeof (env, t2) of
-                  type2 =>  processAdd (env, s, type2) 
+                  type2 => type2 
               )
+            end
         ) 
 
     end

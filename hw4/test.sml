@@ -28,22 +28,6 @@ structure Test = struct
       TextIO.print "desugar tests done\n"
     end
 
-  (* fun processPrint (str) = 
-    let 
-      val ret = Compile.code str
-      fun prt (retStr, tpe) = 
-        let
-          val _ = println retStr
-          val _ = println "\n"
-          val _ = println Type.tos(tpe)
-        in
-          println "\n this term ends"
-        end
-    in
-      case ret of
-          Value(retStr, tpe) => prt(retStr, tpe)
-        | _ => raise Fail "doesn't work somewhere"
-    end *)
 
   fun all () =
     let
@@ -55,6 +39,8 @@ structure Test = struct
       val _ = Check.expect(Compile.code "[2 ^ 2]", Compile.code("4"), "power 1")
       val _ = Check.expect(Compile.code "[2 * 0]", Compile.code("0"), "mul 2")
       val _ = Check.expect(Compile.code "[2 ^ 0]", Compile.code("1"), "power 2")
+      val _ = Check.expect(Compile.code "[2 ^ 3]", Compile.code("8"), "power 2")
+
 
       (* condition *)
       val fls = Compile.code "F"
@@ -79,9 +65,14 @@ structure Test = struct
       val _ = Check.expect(Compile.code "1#(1,2)", Compile.code("1"), "pair")
       val _ = Check.expect(Compile.code "2#(1,[1+0])", Compile.code("1"), "pair")
 
-
-
       val _ = Check.expect(Compile.code "[![ [[3^2]-1] == 2 ] || F]", tru, "combo")
+
+      val tokens  = Scan.scan "{x 1 [2+x]}"
+      val sweet   = Parse.parse tokens
+      val _ = println (U.tos(D.desugar(sweet)))
+      val _ = println (Type.tos(TypeCheck.typeof (TypeEnv.empty, sweet)))
+      val _ = Compile.code ("{x 1 [2+x]}")
+      val _ = Check.expect(Compile.code "{x 1 [2+x]}", Compile.code("3"), "let")
 
     in
     

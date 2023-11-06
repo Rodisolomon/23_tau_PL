@@ -28,6 +28,7 @@ end = struct
               fun println s = TextIO.print (s ^ "\n")
 	            val unsweet = Desugar.desugar sweet
               val _ = println "==new term=="
+              val _ = println (ULC.tos unsweet)
 		          val norm = eval unsweet
               val _ = println program
               val _ = println (ULC.tos norm)
