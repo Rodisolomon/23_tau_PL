@@ -27,12 +27,12 @@ end = struct
         of tau => let
               fun println s = TextIO.print (s ^ "\n")
 	            val unsweet = Desugar.desugar sweet
-              val _ = println "==new term=="
-              val _ = println (ULC.tos unsweet)
+              (* val _ = println "==new term=="
+              val _ = println (ULC.tos unsweet) *)
 		          val norm = eval unsweet
-              val _ = println program
+              (* val _ = println program
               val _ = println (ULC.tos norm)
-              val _ = println (Type.tos tau)
+              val _ = println (Type.tos tau) *)
 	          in
 	            Value (ULC.tos norm, tau)
 	end)
