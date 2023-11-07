@@ -79,7 +79,7 @@ end = struct
         | S.GreaterEq(m, n) =>
           desugar (S.LessEq(n, m))
         | S.Less(m, n) =>
-          desugar (S.Not (S.Greater(m, n)))
+          desugar (S.Not (S.GreaterEq(m, n)))
         | S.LessEq(m, n) => 
           let
             val SubtrTerm = desugar (S.Subtract(m, n))
