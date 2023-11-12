@@ -1,0 +1,168 @@
+CMSC 22100 Autumn 2023 HW5
+
+The week's language is L23RR, named for "records and recursion." This
+language includes record subtyping, which is something SML, for
+example, does not allow. The language is built upon the simply-typed
+lambda calculus enriched with integers, booleans, unit, records, and
+the fix operator. A few common arithmetic and logical operations are
+included so that you can write some minimally interesting programs
+(such as factorial) in L23RR.
+
+The concrete syntactic forms of L23RR are as follows. Read carefully,
+as some of the forms are a little different than in previous homework
+assignments. All the differences can be explained as decisions that
+made it a little easier for yours truly to write a simple front end.
+
+t ::= n             // n is one or more digits, a non-negative number
+    | T             // true
+    | F             // false
+    | ()            // unit
+    | x             // variables are one or more lowercase letters
+    | [lam x tau t] // typed lambdas, which now include the syntactic tag "lam"
+    | (t t)         // applications
+    | (fix t)       // fix, for recursion
+    | {x t t}       // scoped local variables
+    | [t?t:t]       // conditionals
+    | [t+t]         // addition
+    | [t-t]         // subtraction
+    | [t*t]         // multiplication
+    | [t==t]        // integer equality
+    | [t<t]         // less than
+    | !t            // logical negation
+    | [~l t ... ~l t] // records; the dots are not literal syntax, just more stuff
+    | (~l t)        // record field selection
+
+tau ::= I   // integer
+      | B   // boolean
+      | U   // unit
+      | (tau -> tau) // function types
+      | (~l tau ... ~l tau) // record types; dots not literal
+
+Labels in records and record types are written with a tilde followed
+by one or more lowercase letters. Note that types in this system have
+a *concrete* syntax, since you need to write types in programs when
+you write typed abstractions.
+
+The compilation pipeline for HW5 is as follows:
+
+scan -> parse -> record check -> typecheck -> evaluate
+
+Scanning and parsing are provided as usual, along with the rest of the
+typical CS221 homework infrastructure. You need to complete the other
+phases. Note there is no sugar in L23RR.
+
+The record-check phase checks that all record terms and record types
+throughout the program have distinct labels at every level. That is to
+say, the following record is legal in L23RR:
+
+  [~a 1 ~b T ~c ()]
+
+but this one is not:
+
+  [~a 1 ~a T ~c ()]
+
+Similarly, the following record *type* is legal:
+
+  (~a I ~b B ~c U)
+
+but this isn't:
+
+  (~a I ~a B ~c U)
+
+Even if the label ~a were to appear always attached to the same term
+or type, it would still not be acceptable. Each label is only allowed
+to appear once per record at its level.
+
+Note this is a *recursive* property, since records can contain records
+within them, and record types can contain record types in them as
+well. Therefore a proper record check will need to include nested
+levels of checking. For example, the following record is legal:
+
+  [~a [~x 1 ~y 2] ~b [~x 3 ~y 4]]
+
+because at every *level* of the record expression within its record,
+the labels are distinct. By contrast, the following is not legal:
+
+  [~a [~x 1 ~y 2] ~b [~x 3 ~x 4]]  
+
+(because of the repetition of ~x in the second nested record). This is
+legal:
+
+  [~a [~a 1 ~b 2] ~b [~a 3 ~b 4]]
+
+but these are not:
+
+  [~a [~a 1 ~b 2] ~a [~a 3 ~b 4]] // repetition of ~a at top level
+  [~a [~b 1 ~b 2] ~b [~a 3 ~b 4]] // repetition of ~b in first sub-record
+
+Record label checking could be done as part of typechecking, but, in
+order to separate concerns and simplify the programming task broadly,
+we make it a separate phase in this design.
+
+As much as possible, I would like to typechecking and evaluation rules
+in the accompanying PDF to speak for themselves. I'll offer brief
+commentary here.
+
+Typechecking is largely as before. The most notable differences in
+typechecking have to do with having function types and record types,
+as well as the inclusion of record subtyping. Subtyping is first of
+all reflexive, meaning that ground types are subtypes of themselves by
+definition, and record subtyping must follow the width, depth, and
+permutation principles as given in Chapter 15 of TaPL. Function
+subtyping, with its tricky contravariant/covariant formulation, is
+also based on the rule given in Chapter 15.
+
+Note the use of the subtyping relation in the typing rule for function
+application. There is also a use of subtyping in conditionals. For a
+conditional such as this
+
+  [T ? [~a 1 ~b 2] : [~b 3]]
+
+you will use a simple calculation to compute a common supertype of the
+two branches (given as the s function in the PDF). The whole
+conditional expression will have that common supertype as its type. In
+the example immediately above, the type (~b I) would be assigned to
+the whole conditional, since "that much record" is provided by either
+branch, regardless of the outcome of the computation. If the branches
+do not have a common supertype according to our very simple s
+function, then the conditional expression will be considered
+ill-typed. Note that what we are *not* doing is a more complicated
+"least common supertype" calculation, which could, in principal, find
+a common supertype between [~a T ~b 2] and [~b 3 ~c F]. We leave that
+more advanced computation as something for the interested student to
+reflect upon.
+
+The evaluation rules are given in a different style this time: we use
+big-step semantics rather than small-step. Small-step semantics are
+good for proof writing, which is why we find them almost everywhere in
+TaPL, whose emphasis is theory, but, for software specifications,
+big-step semantics, also know as "natural semantics," are more
+common. In big-step semantics, rules are written so a term takes a
+"big step" to its final value. As part of this, constants such as 12
+or T take a big step to themselves (because they're already
+values). In practice, small step and big step are similar, and
+typically produce identical results, assuming they are designed that
+way; they are just different ways to frame evaluation. TaPL has not
+much to say about big-step evaluation semantics, but you will find a
+terse treatment of the topic in exercise 3.5.17.
+
+When we have written small-step evaluators, as we have all quarter, we
+allowed computation just to stop once a normal form was reached; that
+is, evaluation never crashed. For this week's big-step evaluation, we
+will instead raise an exception when a term cannot be evaluated to a
+value. For example, the rules for logical not are defined when its
+subterm takes a big step to T or to F, but no other case is
+addressed. In practice, this means a logical not with a subterm that
+evaluates neither to T nor F should result in a raised exception.
+
+This week, we at long last have plain old numbers, and if you need to
+evaluate [3+4], you may just go ahead and use the computer to add them
+(and not fiddle with rearranging successors one at a time, etc.). In
+the PDF, the rule that says that [t1+t2] takes a big step to n1+n2
+means that the term take a big step to whatever the result of adding
+n1 and n2 is.
+
+I think that's about all the README I have in me at the
+moment. Hopefully the assignment is reasonably clear in the code, in
+the signatures, and in the accompanying document. Otherwise, see you
+on Ed. -ams
