@@ -5,6 +5,27 @@ structure Test = struct
   structure T = Type
   structure RC = RecordCheck
   structure TC = TypeCheck
+
+  fun println s = (print s; print "\n")
+
+  fun testing x = println ("testing " ^ x ^ "...")
+
+  fun parseType (concreteType : string) : Type.typ =
+   (case Parse.parse (Scan.scan ("[lam x " ^ concreteType ^ " ()]"))
+      of L.Lam (_, tau, _) => tau
+       | _ => raise Fail "bug in parseType; this should never happen")
+
+  fun subty () =
+    let
+      fun chkT t1 t2 = Check.assertT (TypeCheck.subty (parseType t1, parseType t2), t1^"<:"^t2^" (true)")
+      fun chkF t1 t2 = Check.assertF (TypeCheck.subty (parseType t1, parseType t2), t1^"<:"^t2^" (false)")
+      val _ = testing "subty"
+      val _ = chkT "(~a I ~b B)" "(~a I)"
+      val _ = chkF "(~a I)" "(~a I ~b B)"
+    in
+      println "subty tests done"
+    end
+
   fun recordCheck () = 
     let
       val _ = Check.expect(RC.check(L.Record([("a", L.True), ("b", L.False)])), RC.check(L.Record([("a", L.True), ("b", L.False)])), "simple true")
@@ -43,7 +64,9 @@ structure Test = struct
     end
   fun all () =
     let
+      val _ = subty ()
       val _ = recordCheck()
+      val _ = typeCheck ()
     in
       TextIO.print "all tests done\n"
     end
