@@ -51,7 +51,16 @@ end = struct
             in
               if res < 0 then L.True else L.False
             end
-          | _ => raise Fail "multiplication of non-integers")       
+          | _ => raise Fail "multiplication of non-integers")    
+    | eval (L.Eq (t1, t2)) = 
+        (case (eval t1, eval t2) of
+          (L.Int n1, L.Int n2) => 
+            let
+              val res = n1-n2
+            in
+              if res = 0 then L.True else L.False
+            end
+          | _ => raise Fail "multiplication of non-integers")     
     | eval (L.Not t1) = 
         (case eval t1 of
            L.True => L.False

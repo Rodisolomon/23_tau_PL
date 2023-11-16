@@ -67,6 +67,20 @@ structure Test = struct
       val _ = subty ()
       val _ = recordCheck()
       val _ = typeCheck ()
+      val _ = Check.expect(Compile.code("[[1 + 2] - [1 + 0]]"), Compile.code("2"), "plus+minus")
+      val _ = Check.expect(Compile.code "[2 * 2]", Compile.code("4"), "mul 1")
+
+      val fls = Compile.code "F"
+      val tru = Compile.code "T"
+      val _ = Check.expect(Compile.code "!T", fls, "cond1")
+      val _ = Check.expect(Compile.code "[1 < 2]", tru, "less")
+      val _ = Check.expect(Compile.code "[2 == 2]", tru, "Eq")
+      val _ = Check.expect(Compile.code "[3 == 2]", fls, "Eq2")
+
+      val _ = Check.expect(Compile.code "[T?2:1]", Compile.code("2"), "Cond1")
+      val _ = Check.expect(Compile.code "[F?2:1]", Compile.code("1"), "Cond2")
+
+      val _ = Check.expect(Compile.code "{x 1 [2+x]}", Compile.code("3"), "let")
     in
       TextIO.print "all tests done\n"
     end
