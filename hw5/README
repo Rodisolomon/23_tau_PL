@@ -166,3 +166,10 @@ I think that's about all the README I have in me at the
 moment. Hopefully the assignment is reasonably clear in the code, in
 the signatures, and in the accompanying document. Otherwise, see you
 on Ed. -ams
+
+#todo: 
+record-check.sml
+subst.sml
+eval.sml
+typecheck.sml
+test.sml
