@@ -81,6 +81,32 @@ structure Test = struct
       val _ = Check.expect(Compile.code "[F?2:1]", Compile.code("1"), "Cond2")
 
       val _ = Check.expect(Compile.code "{x 1 [2+x]}", Compile.code("3"), "let")
+
+      (* scope, fix, record *)
+      val _ = Check.expect(
+        Compile.code "{x 2 {x 3 [x+x]}}",
+        Compile.code "6",
+        "scoped let"
+      )
+      val _ = Check.expect(
+        Compile.code "((fix[ lam f (I -> I) [ lam n I [ [n==0]?1:[n*(f [n-1])] ] ] ]) 3)",
+        Compile.code "6",
+        "fix factorial of 6"
+      )
+
+      val _ = Check.expect(
+        Compile.code "(~x [~x 1 ~y T])",
+        Compile.code "1",
+        "record creation and integer field selection"
+      )
+
+      val _ = Check.expect(
+        Compile.code "(~y [~x 1 ~y T])",
+        Compile.code "T",
+        "record creation and boolean field selection"
+      )
+
+
     in
       TextIO.print "all tests done\n"
     end
